@@ -1,23 +1,17 @@
-import "./globals.css";
-import "./globals-extra.css";
-import { Toaster } from "sonner";
-import ThemeProvider from "@/components/theme-provider";
+import { Suspense } from "react";
+import { Sidebar } from "@/components/layout/sidebar";
 
-export const metadata = {
-  title: "Barracal ERP",
-  description: "Sistema de Gestão Empresarial",
-};
-
-export default function RootLayout({
+export default function DashboardLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="pt-BR">
-      <body>
-        <ThemeProvider />
-        {children}
-        <Toaster richColors position="top-right" />
-      </body>
-    </html>
+    <div className="flex min-h-screen">
+      <Suspense fallback={null}>
+        <Sidebar />
+      </Suspense>
+      <main className="flex-1 overflow-y-auto p-8">{children}</main>
+    </div>
   );
 }

@@ -59,27 +59,23 @@ export default function SettingsPage() {
 
     setSaving(false);
     if (error) {
-      toast.error("Erro ao salvar configurações");
+      toast.error("Erro ao salvar: " + error.message);
     } else {
       toast.success("Configurações salvas!");
-      // Só aplica a cor se o usuário escolheu uma (vazio = usa a cor do tema)
       if (primaryColor) {
         document.documentElement.style.setProperty("--primary", primaryColor);
       }
     }
   }
 
-  // Busca os dados de uma tabela (com ou sem filtro por usuário)
   async function fetchTable(table: string, userId: string) {
     const { data, error } = await supabase.from(table).select("*").eq("user_id", userId);
     if (!error && data) return data;
-    // Tabelas de itens (sem user_id) buscam tudo
     const { data: all, error: err2 } = await supabase.from(table).select("*");
     if (!err2 && all) return all;
     return [];
   }
 
-  // 🔒 BACKUP: baixa um arquivo JSON com TODOS os seus dados
   async function handleBackup() {
     setBackingUp(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -123,7 +119,6 @@ export default function SettingsPage() {
         <p className="text-sm text-gray-500">Central de controle do ERP</p>
       </div>
 
-      {/* 🏢 Identidade */}
       <Card>
         <CardHeader><CardTitle>🏢 Identidade</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -134,7 +129,7 @@ export default function SettingsPage() {
           <div>
             <label className="block text-sm font-medium mb-1">Nome do Produto / Sistema</label>
             <Input value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="Ex: Gestor Pro" />
-            <p className="text-xs text-gray-400 mt-1">É o nome que aparece na tela "Sobre" e no menu lateral</p>
+            <p className="text-xs text-gray-400 mt-1">É o nome que aparece na tela "Sobre"</p>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Versão do Sistema</label>
@@ -143,35 +138,35 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* 🎨 Aparência */}
       <Card>
         <CardHeader><CardTitle>🎨 Aparência</CardTitle></CardHeader>
         <CardContent className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Tema do Sistema</label>
+            <select className="w-full p-2 border rounded-md" value={buttonStyle} onChange={(e) => setButtonStyle(e.target.value)}>
+              <option value="light">Claro (Light)</option>
+              <option value="dark-premium">Dark Premium (Fundo Escuro)</option>
+              <option value="midnight">Midnight (Meia-noite)</option>
+              <option value="emerald">Esmeralda (Emerald)</option>
+              <option value="ocean">Oceano (Ocean)</option>
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium mb-1">Cor Principal</label>
             <div className="flex gap-2 items-center">
               <Input type="color" className="w-12 h-10 p-1" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
               <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} placeholder="Deixe vazio para usar a cor do tema" />
             </div>
-            <p className="text-xs text-gray-400 mt-1">Vazio = usa a cor padrão do tema escolhido</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Estilo dos Botões</label>
-            <select className="w-full p-2 border rounded-md" value={buttonStyle} onChange={(e) => setButtonStyle(e.target.value)}>
-              <option value="dark-premium">Dark Premium (Fundo Escuro)</option>
-              <option value="classic">Clássico</option>
-            </select>
+            <p className="text-xs text-gray-400 mt-1">⚠️ Deixe VAZIO para usar a cor do tema escolhido</p>
           </div>
         </CardContent>
       </Card>
 
-      {/* 🔒 Backup */}
       <Card>
         <CardHeader><CardTitle>🔒 Backup dos Dados</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-500">
-            Gera um arquivo com todos os seus cadastros (produtos, vendas, compras, contas, configurações).
-            Guarde em um lugar seguro — Google Drive, e-mail ou pen drive.
+            Gera um arquivo com todos os seus cadastros. Guarde em um lugar seguro.
           </p>
           <Button onClick={handleBackup} disabled={backingUp}>
             {backingUp ? "Gerando backup..." : "⬇ Gerar backup agora"}
@@ -179,14 +174,11 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* ℹ️ Sobre */}
       <Card>
         <CardHeader><CardTitle>ℹ️ Sobre o Sistema</CardTitle></CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p><strong>{productName || "Meu ERP"}</strong> — versão {version || "1.0.0"}</p>
-          <p className="text-gray-500">
-            Desenvolvido para gestão do dia a dia. Seus dados ficam protegidos no banco e você pode gerar backups a qualquer momento.
-          </p>
+          <p className="text-gray-500">Desenvolvido para gestão do dia a dia. Seus dados ficam protegidos no banco.</p>
         </CardContent>
       </Card>
 
