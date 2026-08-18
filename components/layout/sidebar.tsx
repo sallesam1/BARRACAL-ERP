@@ -23,6 +23,8 @@ import {
   Landmark,
   HandCoins,
   FolderOpen,
+  Menu,
+  X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -61,6 +63,7 @@ export function Sidebar() {
   const router = useRouter();
   const [expenseOpen, setExpenseOpen] = useState(false);
   const [financialOpen, setFinancialOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const isExpenseActive = expenseItems.some((item) => pathname === item.href);
   const isFinancialActive = financialItems.some((item) => pathname === item.href);
@@ -79,6 +82,7 @@ export function Sidebar() {
       <Link
         key={item.href}
         href={item.href}
+        onClick={() => setMobileOpen(false)}
         className={cn(
           "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
           isActive
@@ -130,30 +134,57 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-border bg-card text-card-foreground">
-      <div className="flex h-16 items-center border-b border-border px-6">
-        <h1 className="text-lg font-bold">Barracal ERP</h1>
-      </div>
+    <>
+      {/* Botão hambúrguer — aparece só no mobile */}
+      <button
+        type="button"
+        onClick={() => setMobileOpen(!mobileOpen)}
+        className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-lg md:hidden"
+        aria-label="Abrir menu"
+      >
+        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-        {navItems.map(renderLink)}
+      {/* Overlay escuro no mobile quando o menu está aberto */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
 
-        {renderGroup("Despesas", Receipt, expenseItems, expenseOpen, setExpenseOpen, isExpenseActive)}
+      {/* Sidebar — fixa no desktop, vira gaveta no mobile */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card text-card-foreground transition-transform duration-300",
+          "md:static md:translate-x-0",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex h-16 items-center border-b border-border px-6">
+          <h1 className="text-lg font-bold">Barracal ERP</h1>
+        </div>
 
-        {renderGroup("Financeiro", Wallet, financialItems, financialOpen, setFinancialOpen, isFinancialActive)}
+        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+          {navItems.map(renderLink)}
 
-        {bottomItems.map(renderLink)}
-      </nav>
+          {renderGroup("Despesas", Receipt, expenseItems, expenseOpen, setExpenseOpen, isExpenseActive)}
 
-      <div className="border-t border-border p-4">
-        <button
-          onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-        >
-          <LogOut className="h-4 w-4" />
-          Sair
-        </button>
-      </div>
-    </aside>
+          {renderGroup("Financeiro", Wallet, financialItems, financialOpen, setFinancialOpen, isFinancialActive)}
+
+          {bottomItems.map(renderLink)}
+        </nav>
+
+        <div className="border-t border-border p-4">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="h-4 w-4" />
+            Sair
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
