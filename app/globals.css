@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 215 28% 17%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 215 28% 17%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 215 25% 27%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 215 25% 27%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ===== TEMAS — MESMOS 5 ORIGINAIS, MAS GRAFITE NO LUGAR DO AZUL ===== */
+
+/* Light Clássico — claro, botões grafite */
+.theme-light {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 215 28% 17%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 215 28% 17%;
+}
+
+/* Dark Premium — escuro, botões grafite (não é mais azul) */
+.theme-dark-premium {
+  --background: 222 47% 8%;
+  --foreground: 210 40% 98%;
+  --card: 222 47% 10%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222 47% 10%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 215 25% 27%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 217 32% 17%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217 32% 15%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 217 32% 17%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 63% 50%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217 32% 17%;
+  --input: 217 32% 17%;
+  --ring: 215 25% 27%;
+}
+
+/* Midnight Violet — fundo escuro + violeta (mantém) */
+.theme-midnight {
+  --background: 240 10% 4%;
+  --foreground: 240 5% 96%;
+  --card: 240 8% 7%;
+  --card-foreground: 240 5% 96%;
+  --popover: 240 8% 7%;
+  --popover-foreground: 240 5% 96%;
+  --primary: 258 90% 66%;
+  --primary-foreground: 240 10% 4%;
+  --secondary: 240 6% 12%;
+  --secondary-foreground: 240 5% 96%;
+  --muted: 240 6% 12%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 240 6% 14%;
+  --accent-foreground: 240 5% 96%;
+  --destructive: 0 63% 55%;
+  --destructive-foreground: 240 5% 96%;
+  --border: 240 6% 14%;
+  --input: 240 6% 14%;
+  --ring: 258 90% 66%;
+}
+
+/* Emerald Dark — fundo escuro + verde (mantém) */
+.theme-emerald {
+  --background: 160 30% 5%;
+  --foreground: 152 60% 92%;
+  --card: 160 28% 8%;
+  --card-foreground: 152 60% 92%;
+  --popover: 160 28% 8%;
+  --popover-foreground: 152 60% 92%;
+  --primary: 160 84% 39%;
+  --primary-foreground: 160 40% 5%;
+  --secondary: 160 25% 13%;
+  --secondary-foreground: 152 60% 92%;
+  --muted: 160 25% 12%;
+  --muted-foreground: 155 25% 60%;
+  --accent: 160 25% 13%;
+  --accent-foreground: 152 60% 92%;
+  --destructive: 0 63% 50%;
+  --destructive-foreground: 152 60% 92%;
+  --border: 160 25% 13%;
+  --input: 160 25% 13%;
+  --ring: 160 84% 39%;
+}
+
+/* Ocean Light — claro, botões grafite (não é mais azul) */
+.theme-ocean {
+  --background: 199 45% 97%;
+  --foreground: 215 40% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 40% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 215 40% 12%;
+  --primary: 215 28% 17%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 204 40% 92%;
+  --secondary-foreground: 215 40% 15%;
+  --muted: 204 40% 92%;
+  --muted-foreground: 215 20% 45%;
+  --accent: 199 70% 90%;
+  --accent-foreground: 215 40% 15%;
+  --destructive: 0 84% 55%;
+  --destructive-foreground: 215 40% 15%;
+  --border: 204 35% 88%;
+  --input: 204 35% 88%;
+  --ring: 215 28% 17%;
+}

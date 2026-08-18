@@ -1,0 +1,83 @@
+/* ===== CORES FIXAS POR TEMA + LEGIBILIDADE GLOBAL =====
+   1. Cada tema mantém sua cor travada (nada sobrescreve).
+   2. Chips/selos com fundo claro sempre têm texto escuro.
+   3. Campos de formulário (input, select, textarea) SEMPRE com
+      fundo branco e texto escuro — legíveis em qualquer tema.
+   4. Rótulos (labels) legíveis nos temas escuros. */
+
+/* 1. Cores travadas por tema (não mexer) */
+.theme-light {
+  --primary: 215 28% 17% !important;
+  --ring: 215 28% 17% !important;
+}
+
+.theme-dark-premium {
+  --primary: 215 25% 27% !important;
+  --ring: 215 25% 27% !important;
+}
+
+.theme-midnight {
+  --primary: 258 90% 66% !important;
+  --ring: 258 90% 66% !important;
+}
+
+.theme-emerald {
+  --primary: 160 84% 39% !important;
+  --ring: 160 84% 39% !important;
+}
+
+.theme-ocean {
+  --primary: 215 28% 17% !important;
+  --ring: 215 28% 17% !important;
+}
+
+/* 2. Chips e selos com fundo claro — texto escuro sempre */
+[class*="rounded-full"][class*="bg-gray-50"],
+[class*="rounded-full"][class*="bg-gray-100"],
+[class*="rounded-full"][class*="bg-gray-200"],
+[class*="rounded-full"][class*="bg-slate-50"],
+[class*="rounded-full"][class*="bg-slate-100"],
+[class*="rounded-full"][class*="bg-slate-200"],
+[class*="rounded-full"][class*="bg-blue-50"],
+[class*="rounded-full"][class*="bg-blue-100"],
+[class*="rounded-full"][class*="bg-indigo-50"],
+[class*="rounded-full"][class*="bg-emerald-50"],
+[class*="rounded-full"][class*="bg-green-50"] {
+  color: #1f2937 !important;
+}
+
+[class*="rounded-md"][class*="bg-gray-50"],
+[class*="rounded-md"][class*="bg-gray-100"],
+[class*="rounded-md"][class*="bg-slate-50"],
+[class*="rounded-md"][class*="bg-slate-100"],
+[class*="rounded-md"][class*="bg-blue-50"] {
+  color: #1f2937 !important;
+}
+
+/* 3. NOVO — Campos de formulário sempre legíveis (fundo branco, texto escuro) */
+input,
+select,
+textarea {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  border-color: #6b7280 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important;
+  opacity: 1 !important;
+}
+
+select option {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+/* 4. NOVO — Rótulos (títulos dos campos) legíveis nos temas escuros */
+.theme-dark-premium label,
+.theme-midnight label,
+.theme-emerald label,
+.dark label {
+  color: #e2e8f0 !important;
+}
