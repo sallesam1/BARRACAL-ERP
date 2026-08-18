@@ -5,14 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Pencil, Trash2, X } from "lucide-react";
-
 // Retorna a data de HOJE no fuso do usuário (não em UTC)
 function todayLocal() {
   const now = new Date();
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10);
 }
-
 // Converte aaaa-mm-dd para dd/mm/aaaa
 function formatDateBR(iso: string): string {
   if (!iso) return "—";
@@ -27,7 +25,6 @@ const PAYMENT_LABELS: Record<string, string> = {
   credito: "Cartão de Crédito",
   debito: "Cartão de Débito",
 };
-
 export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,12 +40,14 @@ export default function ExpensesPage() {
   const [notes, setNotes] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const supabase = createClient();
-
   useEffect(() => {
     async function load() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          setLoading(false);
+          return;
+        }
         const [expRes, catRes] = await Promise.all([
           supabase
             .from("expenses")
@@ -74,7 +73,6 @@ export default function ExpensesPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   function resetForm() {
     setDescription("");
     setAmount("");
@@ -83,7 +81,6 @@ export default function ExpensesPage() {
     setEditingId(null);
     setMessage(null);
   }
-
   function startEdit(exp: any) {
     setEditingId(exp.id);
     setDescription(exp.description || "");
@@ -96,7 +93,6 @@ export default function ExpensesPage() {
     setMessage(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
   async function handleSave() {
     setSaving(true);
     setMessage(null);
@@ -121,7 +117,6 @@ export default function ExpensesPage() {
       const parcelas = installments > 0 ? installments : 1;
       let expenseId: string;
       if (editingId) {
-        // Atualiza a despesa
         const { error: updErr } = await supabase
           .from("expenses")
           .update({
@@ -136,10 +131,8 @@ export default function ExpensesPage() {
           .eq("id", editingId);
         if (updErr) throw updErr;
         expenseId = editingId;
-        // Recalcula as parcelas: apaga as antigas e recria
         await supabase.from("accounts_payable").delete().eq("expense_id", editingId);
       } else {
-        // Cria a despesa
         const { data: expense, error: expErr } = await supabase
           .from("expenses")
           .insert({
@@ -157,7 +150,6 @@ export default function ExpensesPage() {
         if (expErr) throw expErr;
         expenseId = expense.id;
       }
-      // Gera as parcelas no Contas a Pagar
       const valorParcela = value / parcelas;
       const payRows = Array.from({ length: parcelas }, (_, i) => {
         const due = new Date(expenseDate);
@@ -194,10 +186,11 @@ export default function ExpensesPage() {
     }
     setSaving(false);
   }
-
   async function handleDelete(id: string) {
     if (!confirm("Excluir esta despesa? As parcelas dela no Contas a Pagar também serão removidas. Prefira EDITAR em vez de excluir.")) return;
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
       await supabase.from("accounts_payable").delete().eq("expense_id", id);
       await supabase.from("expenses").delete().eq("id", id);
       setMessage({ type: "success", text: "Despesa excluída." });
@@ -211,9 +204,7 @@ export default function ExpensesPage() {
       setMessage({ type: "error", text: "Erro ao excluir: " + (e?.message || e) });
     }
   }
-
   if (loading) return <p className="p-6">Carregando...</p>;
-
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Despesas</h1>
