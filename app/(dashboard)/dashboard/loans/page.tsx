@@ -138,6 +138,7 @@ export default function LoansPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+
   // Form
   const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
@@ -150,21 +151,32 @@ export default function LoansPage() {
   const [graceType, setGraceType] = useState("none");
   const [totalInstallments, setTotalInstallments] = useState("1");
   const [startDate, setStartDate] = useState(todayLocal());
+
   // Preview
   const [preview, setPreview] = useState<Installment[] | null>(null);
+
   const supabase = createClient();
 
   async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const [catRes, loanRes] = await Promise.all([
-      supabase.from("loan_categories").select("*").eq("user_id", user.id).order("name"),
-      supabase.from("loans").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-    ]);
-    if (catRes.data) setCategories(catRes.data);
-    if (loanRes.data) setLoans(loanRes.data);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        setLoading(false);
+        return;
+      }
+      const [catRes, loanRes] = await Promise.all([
+        supabase.from("loan_categories").select("*").eq("user_id", user.id).order("name"),
+        supabase.from("loans").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      ]);
+      if (catRes.data) setCategories(catRes.data);
+      if (loanRes.data) setLoans(loanRes.data);
+    } catch (e: any) {
+      setMessage({ type: "error", text: "Erro ao carregar: " + (e?.message || e) });
+    }
     setLoading(false);
   }
+
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,98 +240,111 @@ export default function LoansPage() {
       setMessage({ type: "error", text: "Informe a descrição e um valor válido." });
       return;
     }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const payload = {
-      user_id: user.id,
-      category_id: categoryId || null,
-      description: description.trim(),
-      lender: lender.trim() || null,
-      amount: val,
-      interest_rate: parseFloat(interestRate) || 0,
-      interest_period: interestPeriod,
-      amortization,
-      grace_months: parseInt(graceMonths) || 0,
-      grace_type: graceType,
-      total_installments: parseInt(totalInstallments) || 1,
-      start_date: startDate,
-      status: "active",
-    };
-    let loanId: string;
-    if (editingId) {
-      const { error: updErr } = await supabase
-        .from("loans")
-        .update({
-          category_id: categoryId || null,
-          description: description.trim(),
-          lender: lender.trim() || null,
-          amount: val,
-          interest_rate: parseFloat(interestRate) || 0,
-          interest_period: interestPeriod,
-          amortization,
-          grace_months: parseInt(graceMonths) || 0,
-          grace_type: graceType,
-          total_installments: parseInt(totalInstallments) || 1,
-          start_date: startDate,
-        })
-        .eq("id", editingId);
-      if (updErr) {
-        setMessage({ type: "error", text: "Erro ao salvar: " + updErr.message });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
         return;
       }
-      loanId = editingId;
-      // Recalcula as parcelas: apaga as antigas e recria
-      await supabase.from("loan_installments").delete().eq("loan_id", editingId);
-    } else {
-      const { data: inserted, error } = await supabase.from("loans").insert(payload).select().single();
-      if (error) {
-        setMessage({ type: "error", text: "Erro ao salvar: " + error.message });
-        return;
+      const payload = {
+        user_id: user.id,
+        category_id: categoryId || null,
+        description: description.trim(),
+        lender: lender.trim() || null,
+        amount: val,
+        interest_rate: parseFloat(interestRate) || 0,
+        interest_period: interestPeriod,
+        amortization,
+        grace_months: parseInt(graceMonths) || 0,
+        grace_type: graceType,
+        total_installments: parseInt(totalInstallments) || 1,
+        start_date: startDate,
+        status: "active",
+      };
+      let loanId: string;
+      if (editingId) {
+        const { error: updErr } = await supabase
+          .from("loans")
+          .update({
+            category_id: categoryId || null,
+            description: description.trim(),
+            lender: lender.trim() || null,
+            amount: val,
+            interest_rate: parseFloat(interestRate) || 0,
+            interest_period: interestPeriod,
+            amortization,
+            grace_months: parseInt(graceMonths) || 0,
+            grace_type: graceType,
+            total_installments: parseInt(totalInstallments) || 1,
+            start_date: startDate,
+          })
+          .eq("id", editingId)
+          .eq("user_id", user.id);
+        if (updErr) {
+          setMessage({ type: "error", text: "Erro ao salvar: " + updErr.message });
+          return;
+        }
+        loanId = editingId;
+        // Recalcula as parcelas: apaga as antigas e recria
+        await supabase.from("loan_installments").delete().eq("loan_id", editingId).eq("user_id", user.id);
+      } else {
+        const { data: inserted, error } = await supabase.from("loans").insert(payload).select().single();
+        if (error) {
+          setMessage({ type: "error", text: "Erro ao salvar: " + error.message });
+          return;
+        }
+        loanId = inserted.id;
       }
-      loanId = inserted.id;
-    }
-    // Gera e grava as parcelas
-    const rate = parseFloat(interestRate) || 0;
-    const monthly = interestPeriod === "anual" ? annualToMonthly(rate) : rate / 100;
-    const schedule = buildSchedule({
-      amount: val,
-      monthlyRate: monthly,
-      amortization,
-      graceMonths: parseInt(graceMonths) || 0,
-      graceType,
-      totalInstallments: parseInt(totalInstallments) || 1,
-      startDate,
-    });
-    const rows = schedule.map((p) => ({
-      user_id: user.id,
-      loan_id: loanId,
-      installment_number: p.installment_number,
-      due_date: p.due_date,
-      principal: p.principal,
-      interest: p.interest,
-      total: p.total,
-      status: "pending",
-    }));
-    const { error: insErr } = await supabase.from("loan_installments").insert(rows);
-    if (insErr) {
-      setMessage({ type: "error", text: "Empréstimo salvo, mas erro nas parcelas: " + insErr.message });
-    } else {
-      setMessage({
-        type: "success",
-        text: editingId
-          ? `Empréstimo atualizado! ${schedule.length} parcelas recalculadas.`
-          : `Empréstimo cadastrado com ${schedule.length} parcelas!`,
+      // Gera e grava as parcelas
+      const rate = parseFloat(interestRate) || 0;
+      const monthly = interestPeriod === "anual" ? annualToMonthly(rate) : rate / 100;
+      const schedule = buildSchedule({
+        amount: val,
+        monthlyRate: monthly,
+        amortization,
+        graceMonths: parseInt(graceMonths) || 0,
+        graceType,
+        totalInstallments: parseInt(totalInstallments) || 1,
+        startDate,
       });
+      const rows = schedule.map((p) => ({
+        user_id: user.id,
+        loan_id: loanId,
+        installment_number: p.installment_number,
+        due_date: p.due_date,
+        principal: p.principal,
+        interest: p.interest,
+        total: p.total,
+        status: "pending",
+      }));
+      const { error: insErr } = await supabase.from("loan_installments").insert(rows);
+      if (insErr) {
+        setMessage({ type: "error", text: "Empréstimo salvo, mas erro nas parcelas: " + insErr.message });
+      } else {
+        setMessage({
+          type: "success",
+          text: editingId
+            ? `Empréstimo atualizado! ${schedule.length} parcelas recalculadas.`
+            : `Empréstimo cadastrado com ${schedule.length} parcelas!`,
+        });
+      }
+      resetForm();
+      loadData();
+    } catch (e: any) {
+      setMessage({ type: "error", text: "Erro ao salvar: " + (e?.message || e) });
     }
-    resetForm();
-    loadData();
   }
 
   async function handleDelete(id: string) {
     if (!confirm("Excluir este empréstimo? As parcelas dele também serão removidas. Prefira EDITAR em vez de excluir.")) return;
     try {
-      await supabase.from("loan_installments").delete().eq("loan_id", id);
-      const { error } = await supabase.from("loans").delete().eq("id", id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
+      await supabase.from("loan_installments").delete().eq("loan_id", id).eq("user_id", user.id);
+      const { error } = await supabase.from("loans").delete().eq("id", id).eq("user_id", user.id);
       if (error) throw error;
       setMessage({ type: "success", text: "Empréstimo excluído." });
       loadData();
@@ -329,6 +354,7 @@ export default function LoansPage() {
   }
 
   if (loading) return <p className="p-6">Carregando...</p>;
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Empréstimos</h1>

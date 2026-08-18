@@ -1,30 +1,48 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const supabase = createClient();
 
     async function handleCallback() {
-      const { error } = await supabase.auth.getSession();
-      if (error) {
-        router.replace("/login");
+      // Lê o tipo de link vindo do Supabase
+      const type = searchParams.get("type");
+      const code = searchParams.get("code");
+
+      // Se tem um code, troca pelo token de sessão
+      if (code) {
+        await supabase.auth.exchangeCodeForSession(code);
+      }
+
+      // Se for link de RECUPERAÇÃO DE SENHA → vai para a tela de Nova senha
+      if (type === "recovery") {
+        router.replace("/reset-password");
         return;
       }
+
+      // Se for link de CONFIRMAÇÃO DE E-MAIL → vai para o login com mensagem
+      if (type === "signup") {
+        router.replace("/login?confirmed=true");
+        return;
+      }
+
+      // Qualquer outro caso (login normal com Google, etc.) → dashboard
       router.replace("/dashboard");
     }
 
     handleCallback();
-  }, [router]);
+  }, [router, searchParams]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <p className="text-gray-500">Conectando com Google...</p>
+      <p className="text-gray-500">Conectando...</p>
     </div>
   );
 }

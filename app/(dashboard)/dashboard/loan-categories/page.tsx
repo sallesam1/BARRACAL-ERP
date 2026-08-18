@@ -33,14 +33,22 @@ export default function LoanCategoriesPage() {
   const supabase = createClient();
 
   async function loadCategories() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data } = await supabase
-      .from("loan_categories")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("name");
-    if (data) setCategories(data);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        setLoading(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("loan_categories")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("name");
+      if (data) setCategories(data);
+    } catch (e: any) {
+      setMessage({ type: "error", text: "Erro ao carregar: " + (e?.message || e) });
+    }
     setLoading(false);
   }
 
@@ -54,6 +62,7 @@ export default function LoanCategoriesPage() {
     setInterestRate("0");
     setAmortization("price");
     setEditingId(null);
+    setMessage(null);
   }
 
   async function handleSave() {
@@ -61,39 +70,56 @@ export default function LoanCategoriesPage() {
       setMessage({ type: "error", text: "Informe o nome da categoria." });
       return;
     }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
 
-    const payload = {
-      user_id: user.id,
-      name: name.trim(),
-      default_interest_rate: parseFloat(interestRate) || 0,
-      default_amortization: amortization,
-    };
+      const payload = {
+        user_id: user.id,
+        name: name.trim(),
+        default_interest_rate: parseFloat(interestRate) || 0,
+        default_amortization: amortization,
+      };
 
-    let error: any = null;
-    if (editingId) {
-      ({ error } = await supabase.from("loan_categories").update(payload).eq("id", editingId));
-    } else {
-      ({ error } = await supabase.from("loan_categories").insert(payload));
-    }
+      let error: any = null;
+      if (editingId) {
+        ({ error } = await supabase.from("loan_categories").update(payload).eq("id", editingId).eq("user_id", user.id));
+      } else {
+        ({ error } = await supabase.from("loan_categories").insert(payload));
+      }
 
-    if (error) {
-      setMessage({ type: "error", text: "Erro ao salvar: " + error.message });
-    } else {
-      setMessage({ type: "success", text: editingId ? "Categoria atualizada!" : "Categoria criada!" });
-      resetForm();
-      loadCategories();
+      if (error) {
+        setMessage({ type: "error", text: "Erro ao salvar: " + error.message });
+      } else {
+        setMessage({ type: "success", text: editingId ? "Categoria atualizada!" : "Categoria criada!" });
+        resetForm();
+        loadCategories();
+      }
+    } catch (e: any) {
+      setMessage({ type: "error", text: "Erro ao salvar: " + (e?.message || e) });
     }
   }
 
   async function handleDelete(id: string) {
-    const { error } = await supabase.from("loan_categories").delete().eq("id", id);
-    if (error) {
-      setMessage({ type: "error", text: "Erro ao excluir: " + error.message });
-    } else {
-      setMessage({ type: "success", text: "Categoria excluída." });
-      loadCategories();
+    if (!confirm("Excluir esta categoria? Prefira EDITAR em vez de excluir.")) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
+      const { error } = await supabase.from("loan_categories").delete().eq("id", id).eq("user_id", user.id);
+      if (error) {
+        setMessage({ type: "error", text: "Erro ao excluir: " + error.message });
+      } else {
+        setMessage({ type: "success", text: "Categoria excluída." });
+        loadCategories();
+      }
+    } catch (e: any) {
+      setMessage({ type: "error", text: "Erro ao excluir: " + (e?.message || e) });
     }
   }
 
@@ -102,6 +128,7 @@ export default function LoanCategoriesPage() {
     setName(cat.name);
     setInterestRate(String(cat.default_interest_rate));
     setAmortization(cat.default_amortization);
+    setMessage(null);
   }
 
   if (loading) return <p className="p-6">Carregando...</p>;

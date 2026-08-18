@@ -38,6 +38,7 @@ export default function BankAccountsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   // Form conta
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [accountName, setAccountName] = useState("");
@@ -46,6 +47,7 @@ export default function BankAccountsPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [initialBalance, setInitialBalance] = useState("0");
   const [isMaster, setIsMaster] = useState(false);
+
   // Form transação
   const [editingTxId, setEditingTxId] = useState<string | null>(null);
   const [selectedAccount, setSelectedAccount] = useState("");
@@ -53,21 +55,31 @@ export default function BankAccountsPage() {
   const [txDesc, setTxDesc] = useState("");
   const [txAmount, setTxAmount] = useState("");
   const [txDate, setTxDate] = useState(todayLocal());
+
   const supabase = createClient();
 
   async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const [bankRes, accRes, txRes] = await Promise.all([
-      supabase.from("banks").select("*").order("name"),
-      supabase.from("bank_accounts").select("*").eq("user_id", user.id).order("account_name"),
-      supabase.from("bank_transactions").select("*").eq("user_id", user.id).order("transaction_date", { ascending: false }),
-    ]);
-    if (bankRes.data) setBanks(bankRes.data);
-    if (accRes.data) setAccounts(accRes.data);
-    if (txRes.data) setTransactions(txRes.data);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        setLoading(false);
+        return;
+      }
+      const [bankRes, accRes, txRes] = await Promise.all([
+        supabase.from("banks").select("*").order("name"),
+        supabase.from("bank_accounts").select("*").eq("user_id", user.id).order("account_name"),
+        supabase.from("bank_transactions").select("*").eq("user_id", user.id).order("transaction_date", { ascending: false }),
+      ]);
+      if (bankRes.data) setBanks(bankRes.data);
+      if (accRes.data) setAccounts(accRes.data);
+      if (txRes.data) setTransactions(txRes.data);
+    } catch (e: any) {
+      setMessage({ type: "error", text: "Erro ao carregar: " + (e?.message || e) });
+    }
     setLoading(false);
   }
+
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -111,37 +123,49 @@ export default function BankAccountsPage() {
       setMessage({ type: "error", text: "Informe o nome da conta." });
       return;
     }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const payload = {
-      account_name: accountName.trim(),
-      bank_code: bankCode || null,
-      agency: agency.trim() || null,
-      account_number: accountNumber.trim() || null,
-      initial_balance: parseFloat(initialBalance) || 0,
-      is_master: isMaster,
-    };
-    let error: any = null;
-    if (editingAccountId) {
-      const res = await supabase.from("bank_accounts").update(payload).eq("id", editingAccountId);
-      error = res.error;
-    } else {
-      const res = await supabase.from("bank_accounts").insert({ user_id: user.id, ...payload });
-      error = res.error;
-    }
-    if (error) setMessage({ type: "error", text: "Erro ao salvar conta: " + error.message });
-    else {
-      setMessage({ type: "success", text: editingAccountId ? "Conta atualizada!" : "Conta criada!" });
-      resetAccountForm();
-      loadData();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
+      const payload = {
+        account_name: accountName.trim(),
+        bank_code: bankCode || null,
+        agency: agency.trim() || null,
+        account_number: accountNumber.trim() || null,
+        initial_balance: parseFloat(initialBalance) || 0,
+        is_master: isMaster,
+      };
+      let error: any = null;
+      if (editingAccountId) {
+        const res = await supabase.from("bank_accounts").update(payload).eq("id", editingAccountId).eq("user_id", user.id);
+        error = res.error;
+      } else {
+        const res = await supabase.from("bank_accounts").insert({ user_id: user.id, ...payload });
+        error = res.error;
+      }
+      if (error) setMessage({ type: "error", text: "Erro ao salvar conta: " + error.message });
+      else {
+        setMessage({ type: "success", text: editingAccountId ? "Conta atualizada!" : "Conta criada!" });
+        resetAccountForm();
+        loadData();
+      }
+    } catch (e: any) {
+      setMessage({ type: "error", text: "Erro ao salvar conta: " + (e?.message || e) });
     }
   }
 
   async function handleDeleteAccount(id: string) {
     if (!confirm("Excluir esta conta? Os lançamentos dela também serão removidos. Prefira EDITAR em vez de excluir.")) return;
     try {
-      await supabase.from("bank_transactions").delete().eq("account_id", id);
-      const { error } = await supabase.from("bank_accounts").delete().eq("id", id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
+      await supabase.from("bank_transactions").delete().eq("account_id", id).eq("user_id", user.id);
+      const { error } = await supabase.from("bank_accounts").delete().eq("id", id).eq("user_id", user.id);
       if (error) throw error;
       setMessage({ type: "success", text: "Conta excluída." });
       loadData();
@@ -177,47 +201,66 @@ export default function BankAccountsPage() {
       setMessage({ type: "error", text: "Preencha conta, descrição e valor." });
       return;
     }
-    const payload = {
-      account_id: selectedAccount,
-      type: txType,
-      description: txDesc.trim(),
-      amount: val,
-      transaction_date: txDate,
-    };
-    let error: any = null;
-    if (editingTxId) {
-      const res = await supabase.from("bank_transactions").update(payload).eq("id", editingTxId);
-      error = res.error;
-    } else {
+    try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const res = await supabase.from("bank_transactions").insert({ user_id: user.id, ...payload });
-      error = res.error;
-    }
-    if (error) setMessage({ type: "error", text: "Erro ao lançar: " + error.message });
-    else {
-      setMessage({ type: "success", text: editingTxId ? "Lançamento atualizado!" : "Lançamento feito!" });
-      resetTxForm();
-      loadData();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
+      const payload = {
+        account_id: selectedAccount,
+        type: txType,
+        description: txDesc.trim(),
+        amount: val,
+        transaction_date: txDate,
+      };
+      let error: any = null;
+      if (editingTxId) {
+        const res = await supabase.from("bank_transactions").update(payload).eq("id", editingTxId).eq("user_id", user.id);
+        error = res.error;
+      } else {
+        const res = await supabase.from("bank_transactions").insert({ user_id: user.id, ...payload });
+        error = res.error;
+      }
+      if (error) setMessage({ type: "error", text: "Erro ao lançar: " + error.message });
+      else {
+        setMessage({ type: "success", text: editingTxId ? "Lançamento atualizado!" : "Lançamento feito!" });
+        resetTxForm();
+        loadData();
+      }
+    } catch (e: any) {
+      setMessage({ type: "error", text: "Erro ao lançar: " + (e?.message || e) });
     }
   }
 
   async function handleDeleteTransaction(id: string) {
     if (!confirm("Excluir este lançamento? Prefira EDITAR em vez de excluir.")) return;
-    const { error } = await supabase.from("bank_transactions").delete().eq("id", id);
-    if (error) setMessage({ type: "error", text: "Erro ao excluir: " + error.message });
-    else { setMessage({ type: "success", text: "Lançamento excluído." }); loadData(); }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
+      const { error } = await supabase.from("bank_transactions").delete().eq("id", id).eq("user_id", user.id);
+      if (error) setMessage({ type: "error", text: "Erro ao excluir: " + error.message });
+      else { setMessage({ type: "success", text: "Lançamento excluído." }); loadData(); }
+    } catch (e: any) {
+      setMessage({ type: "error", text: "Erro ao excluir: " + (e?.message || e) });
+    }
   }
 
   if (loading) return <p className="p-6">Carregando...</p>;
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Contas Correntes</h1>
+
       {message && (
         <div className={"p-3 rounded-md border text-sm " + (message.type === "success" ? "bg-green-50 border-green-200 text-green-700" : "bg-red-50 border-red-200 text-red-700")}>
           {message.text}
         </div>
       )}
+
       {/* Nova conta / Editar conta */}
       <Card>
         <CardHeader><CardTitle>{editingAccountId ? "Editar Conta" : "Nova Conta"}</CardTitle></CardHeader>
@@ -269,6 +312,7 @@ export default function BankAccountsPage() {
           </div>
         </CardContent>
       </Card>
+
       {/* Lista de contas com saldo */}
       <Card>
         <CardHeader><CardTitle>Minhas Contas</CardTitle></CardHeader>
@@ -310,6 +354,7 @@ export default function BankAccountsPage() {
           )}
         </CardContent>
       </Card>
+
       {/* Lançamento */}
       <Card>
         <CardHeader><CardTitle>{editingTxId ? "Editar Lançamento" : "Lançar Entrada / Saída"}</CardTitle></CardHeader>
@@ -358,6 +403,7 @@ export default function BankAccountsPage() {
           </div>
         </CardContent>
       </Card>
+
       {/* Últimos lançamentos */}
       <Card>
         <CardHeader><CardTitle>Últimos Lançamentos</CardTitle></CardHeader>

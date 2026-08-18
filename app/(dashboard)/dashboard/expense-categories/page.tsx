@@ -24,7 +24,11 @@ export default function ExpenseCategoriesPage() {
   async function load() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        setLoading(false);
+        return;
+      }
       const { data } = await supabase
         .from("expense_categories")
         .select("*")
@@ -57,13 +61,17 @@ export default function ExpenseCategoriesPage() {
     }
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
 
       if (editingId) {
         const { error } = await supabase
           .from("expense_categories")
           .update({ name: newName.trim() })
-          .eq("id", editingId);
+          .eq("id", editingId)
+          .eq("user_id", user.id);
         if (error) throw error;
         setMessage({ type: "success", text: "Categoria atualizada!" });
         cancelEdit();
@@ -85,7 +93,16 @@ export default function ExpenseCategoriesPage() {
   async function handleDelete(id: string) {
     if (!confirm("Excluir esta categoria? Prefira EDITAR em vez de excluir.")) return;
     try {
-      const { error } = await supabase.from("expense_categories").delete().eq("id", id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
+      const { error } = await supabase
+        .from("expense_categories")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
       if (error) throw error;
       setMessage({ type: "success", text: "Categoria removida." });
       load();

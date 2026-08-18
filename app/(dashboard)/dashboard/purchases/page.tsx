@@ -54,6 +54,7 @@ function WeightInput({
     </div>
   );
 }
+
 // ===== Utilitários de data (formato brasileiro) =====
 function todayBR(): string {
   const now = new Date();
@@ -94,6 +95,7 @@ export default function PurchasesPage() {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+
   // Formulário
   const [supplierId, setSupplierId] = useState("");
   const [productId, setProductId] = useState("");
@@ -107,6 +109,7 @@ export default function PurchasesPage() {
   const [installmentInterval, setInstallmentInterval] = useState(30);
   const [isInitialStock, setIsInitialStock] = useState(false);
   const [notes, setNotes] = useState("");
+
   const supabase = createClient();
 
   useEffect(() => {
@@ -117,7 +120,11 @@ export default function PurchasesPage() {
   async function load() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        setLoading(false);
+        return;
+      }
       const [prodRes, supRes, purRes] = await Promise.all([
         supabase.from("products").select("id, name").order("name"),
         supabase.from("suppliers").select("*"),
@@ -162,7 +169,6 @@ export default function PurchasesPage() {
       .select("product_id, quantity, unit_cost")
       .eq("purchase_id", p.id)
       .maybeSingle();
-
     const supplier = suppliers.find((s) => s.name === p.supplier_name);
     setSupplierId(supplier?.id || "");
     setProductId(item?.product_id || "");
@@ -217,9 +223,7 @@ export default function PurchasesPage() {
       const supplierName = supplier?.name || "Fornecedor";
       const pesoKg = toKg(weight, weightUnit);
       const dataISO = purchaseDate.includes("/") ? parseDateBR(purchaseDate) : purchaseDate;
-
       let purchaseId: string;
-
       if (editingId) {
         // ===== EDIÇÃO =====
         // 1. Reverte o estoque da versão antiga
@@ -255,7 +259,8 @@ export default function PurchasesPage() {
             first_due_days: firstDueDays,
             installment_interval: installmentInterval,
           })
-          .eq("id", editingId);
+          .eq("id", editingId)
+          .eq("user_id", user.id);
         if (updErr) throw updErr;
         // 3. Remove itens e parcelas antigas (serão recriados abaixo)
         await supabase.from("purchase_items").delete().eq("purchase_id", editingId);
@@ -281,7 +286,6 @@ export default function PurchasesPage() {
         if (purErr) throw purErr;
         purchaseId = purchase.id;
       }
-
       // 4. Item da compra (novo/atualizado)
       const { error: itemErr } = await supabase.from("purchase_items").insert({
         purchase_id: purchaseId,
@@ -290,7 +294,6 @@ export default function PurchasesPage() {
         unit_cost: cost,
       });
       if (itemErr) throw itemErr;
-
       // 5. Aplica o novo estoque (soma em kg)
       const { data: inv } = await supabase
         .from("inventory")
@@ -311,7 +314,6 @@ export default function PurchasesPage() {
           min_quantity: 5,
         });
       }
-
       // 6. Gera as parcelas (somente se NÃO for estoque inicial)
       if (!isInitialStock) {
         const parcelas = installments > 0 ? installments : 1;
@@ -335,7 +337,6 @@ export default function PurchasesPage() {
         const { error: payErr } = await supabase.from("accounts_payable").insert(payRows);
         if (payErr) throw payErr;
       }
-
       setMessage({
         type: "success",
         text: isInitialStock
@@ -345,7 +346,6 @@ export default function PurchasesPage() {
           : `Compra salva! ${installments}x de R$ ${Number(total / installments).toFixed(2)} geradas no Contas a Pagar.`,
       });
       resetForm();
-
       const { data: purRes } = await supabase
         .from("purchases")
         .select("*")
@@ -362,6 +362,11 @@ export default function PurchasesPage() {
   async function handleDelete(id: string) {
     if (!confirm("Excluir esta compra? O estoque e as parcelas dela também serão ajustados. Prefira EDITAR em vez de excluir.")) return;
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
       // Reverte o estoque antes de excluir
       const { data: item } = await supabase
         .from("purchase_items")
@@ -372,7 +377,7 @@ export default function PurchasesPage() {
         const { data: inv } = await supabase
           .from("inventory")
           .select("id, quantity")
-          .eq("user_id", (await supabase.auth.getUser()).data.user?.id || "")
+          .eq("user_id", user.id)
           .eq("product_id", item.product_id)
           .maybeSingle();
         if (inv) {
@@ -384,7 +389,7 @@ export default function PurchasesPage() {
       }
       await supabase.from("accounts_payable").delete().eq("purchase_id", id);
       await supabase.from("purchase_items").delete().eq("purchase_id", id);
-      await supabase.from("purchases").delete().eq("id", id);
+      await supabase.from("purchases").delete().eq("id", id).eq("user_id", user.id);
       setMessage({ type: "success", text: "Compra excluída e estoque ajustado." });
       load();
     } catch (e: any) {
@@ -394,9 +399,11 @@ export default function PurchasesPage() {
 
   if (loading) return <p className="p-6">Carregando...</p>;
   const totalExibido = parseNumber(weight) * parseNumber(unitCost);
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Compras</h1>
+
       {message && (
         <div className={
           "p-3 rounded-md border text-sm " +
@@ -407,6 +414,7 @@ export default function PurchasesPage() {
           {message.text}
         </div>
       )}
+
       <Card>
         <CardHeader>
           <CardTitle>{editingId ? "Editar Compra" : "Nova Compra"}</CardTitle>
@@ -543,6 +551,7 @@ export default function PurchasesPage() {
           </div>
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Compras Recentes</CardTitle>

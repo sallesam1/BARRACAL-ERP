@@ -31,7 +31,11 @@ export default function AccountsPayablePage() {
   async function load() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        setLoading(false);
+        return;
+      }
 
       const [payRes, purRes] = await Promise.all([
         supabase
@@ -63,10 +67,16 @@ export default function AccountsPayablePage() {
 
   async function handlePay(id: string) {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
       const { error } = await supabase
         .from("accounts_payable")
         .update({ status: "paid" })
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
       if (error) throw error;
       setMessage({ type: "success", text: "Boleto marcado como pago!" });
       load();
@@ -77,10 +87,16 @@ export default function AccountsPayablePage() {
 
   async function handleReopen(id: string) {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
       const { error } = await supabase
         .from("accounts_payable")
         .update({ status: "pending" })
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
       if (error) throw error;
       setMessage({ type: "success", text: "Boleto reaberto." });
       load();
@@ -92,7 +108,16 @@ export default function AccountsPayablePage() {
   async function handleDelete(id: string) {
     if (!confirm("Excluir este boleto?")) return;
     try {
-      const { error } = await supabase.from("accounts_payable").delete().eq("id", id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado." });
+        return;
+      }
+      const { error } = await supabase
+        .from("accounts_payable")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
       if (error) throw error;
       setMessage({ type: "success", text: "Boleto excluído." });
       load();
