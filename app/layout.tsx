@@ -1,6 +1,6 @@
 import "./globals.css";
 import { Toaster } from "sonner";
-import ThemeLoader from "./theme-loader";
+import ThemeProvider from "@/components/theme-provider";
 
 export const metadata = {
   title: "Barracal ERP",
@@ -17,7 +17,7 @@ export default function RootLayout({
       <body>
         {children}
         <Toaster />
-        <ThemeLoader />
+        <ThemeProvider />
       </body>
     </html>
   );
