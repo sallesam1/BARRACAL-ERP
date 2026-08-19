@@ -62,6 +62,8 @@ export default function SettingsPage() {
       toast.error("Erro ao salvar: " + error.message);
     } else {
       toast.success("Configurações salvas!");
+      // ⬇️ ESTA LINHA É A CORREÇÃO: avisa o ThemeProvider para reaplicar o tema NA HORA
+      window.dispatchEvent(new Event("settings-saved"));
       if (primaryColor) {
         document.documentElement.style.setProperty("--primary", primaryColor);
       }
