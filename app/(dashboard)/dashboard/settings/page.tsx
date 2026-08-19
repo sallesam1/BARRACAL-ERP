@@ -55,7 +55,7 @@ export default function SettingsPage() {
       primary_color: primaryColor,
       button_style: buttonStyle,
       updated_at: new Date().toISOString(),
-    });
+    }, { onConflict: 'user_id' });
 
     setSaving(false);
     if (error) {
