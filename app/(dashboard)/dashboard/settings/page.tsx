@@ -16,6 +16,7 @@ export default function SettingsPage() {
   const [version, setVersion] = useState("");
   const [primaryColor, setPrimaryColor] = useState("");
   const [buttonStyle, setButtonStyle] = useState("dark-premium");
+  const [users, setUsers] = useState<{ id: string; email: string; role: string; theme: string }[]>([]);
 
   const supabase = createClient();
 
@@ -41,6 +42,48 @@ export default function SettingsPage() {
     }
     loadSettings();
   }, []);
+
+  // Carrega a lista de usuários (para o admin definir o tema de cada um)
+  useEffect(() => {
+    async function loadUsers() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Busca os perfis (user_roles) e os temas salvos (settings)
+      const { data: roles } = await supabase.from("user_roles").select("user_id, email, role");
+      if (!roles) return;
+
+      const { data: settings } = await supabase.from("settings").select("user_id, button_style");
+
+      const list = roles.map((r: any) => {
+        const s = settings?.find((x: any) => x.user_id === r.user_id);
+        return {
+          id: r.user_id,
+          email: r.email ?? "sem e-mail",
+          role: r.role ?? "viewer",
+          theme: s?.button_style ?? "dark-premium",
+        };
+      });
+      setUsers(list);
+    }
+    loadUsers();
+  }, []);
+
+  // Salva o tema de um usuário específico (admin define o tema do irmão)
+  async function handleSetUserTheme(userId: string, theme: string) {
+    const { error } = await supabase.from("settings").upsert({
+      user_id: userId,
+      button_style: theme,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' });
+
+    if (error) {
+      toast.error("Erro ao definir tema: " + error.message);
+    } else {
+      toast.success("Tema do usuário atualizado!");
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, theme } : u)));
+    }
+  }
 
   async function handleSave() {
     setSaving(true);
@@ -164,6 +207,38 @@ export default function SettingsPage() {
             </div>
             <p className="text-xs text-gray-400 mt-1">⚠️ Deixe VAZIO para usar a cor do tema escolhido</p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>👥 Tema dos Usuários</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Defina o tema de cada usuário. Cada um verá o tema que você escolher aqui.
+          </p>
+          {users.length === 0 ? (
+            <p className="text-sm text-gray-400">Nenhum usuário encontrado ainda.</p>
+          ) : (
+            users.map((u) => (
+              <div key={u.id} className="flex flex-col gap-2 rounded-md border border-border p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium">{u.email}</p>
+                  <p className="text-xs text-gray-400">{u.role === "admin" ? "Administrador" : "Usuário limitado"}</p>
+                </div>
+                <select
+                  className="w-full p-2 border rounded-md bg-card text-foreground sm:w-56"
+                  value={u.theme}
+                  onChange={(e) => handleSetUserTheme(u.id, e.target.value)}
+                >
+                  <option value="light">Claro (Light)</option>
+                  <option value="dark-premium">Dark Premium (Fundo Escuro)</option>
+                  <option value="midnight">Midnight (Meia-noite)</option>
+                  <option value="emerald">Esmeralda (Emerald)</option>
+                  <option value="ocean">Oceano (Ocean)</option>
+                </select>
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
 

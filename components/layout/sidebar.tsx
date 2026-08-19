@@ -95,6 +95,17 @@ export function Sidebar() {
   const isExpenseActive = expenseItems.some((item) => pathname === item.href);
   const isFinancialActive = financialItems.some((item) => pathname === item.href);
 
+  // Abrir um grupo fecha o outro (só um aberto por vez — tela limpa)
+  function toggleExpense() {
+    setExpenseOpen((v) => !v);
+    setFinancialOpen(false);
+  }
+
+  function toggleFinancial() {
+    setFinancialOpen((v) => !v);
+    setExpenseOpen(false);
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push("/login");
@@ -194,9 +205,9 @@ export function Sidebar() {
         <nav className="flex-1 space-y-1 overflow-y-auto p-4">
           {navItems.map(renderLink)}
 
-          {renderGroup("Despesas", Receipt, expenseItems, expenseOpen, setExpenseOpen, isExpenseActive)}
+          {renderGroup("Despesas", Receipt, expenseItems, expenseOpen, toggleExpense, isExpenseActive)}
 
-          {renderGroup("Financeiro", Wallet, financialItems, financialOpen, setFinancialOpen, isFinancialActive)}
+          {renderGroup("Financeiro", Wallet, financialItems, financialOpen, toggleFinancial, isFinancialActive)}
 
           {visibleBottomItems.map(renderLink)}
         </nav>
