@@ -172,4 +172,11 @@
   --border: 204 35% 88%;
   --input: 204 35% 88%;
   --ring: 215 28% 17%;
+}/* ===== CORREÇÃO FINAL: janelas transparentes mostram o fundo do tema ===== */
+.bg-card,
+.bg-popover,
+.bg-secondary,
+.bg-muted,
+.bg-accent {
+  background-color: transparent !important;
 }
