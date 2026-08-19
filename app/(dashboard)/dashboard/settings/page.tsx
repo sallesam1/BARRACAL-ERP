@@ -62,7 +62,6 @@ export default function SettingsPage() {
       toast.error("Erro ao salvar: " + error.message);
     } else {
       toast.success("Configurações salvas!");
-      // ⬇️ ESTA LINHA É A CORREÇÃO: avisa o ThemeProvider para reaplicar o tema NA HORA
       window.dispatchEvent(new Event("settings-saved"));
       if (primaryColor) {
         document.documentElement.style.setProperty("--primary", primaryColor);
@@ -145,7 +144,11 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Tema do Sistema</label>
-            <select className="w-full p-2 border rounded-md" value={buttonStyle} onChange={(e) => setButtonStyle(e.target.value)}>
+            <select
+              className="w-full p-2 border rounded-md bg-card text-foreground"
+              value={buttonStyle}
+              onChange={(e) => setButtonStyle(e.target.value)}
+            >
               <option value="light">Claro (Light)</option>
               <option value="dark-premium">Dark Premium (Fundo Escuro)</option>
               <option value="midnight">Midnight (Meia-noite)</option>
@@ -157,7 +160,7 @@ export default function SettingsPage() {
             <label className="block text-sm font-medium mb-1">Cor Principal</label>
             <div className="flex gap-2 items-center">
               <Input type="color" className="w-12 h-10 p-1" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
-              <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} placeholder="Deixe vazio para usar a cor do tema" />
+              <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} placeholder="Deixe vazio para usar a cor do tema" className="bg-card text-foreground" />
             </div>
             <p className="text-xs text-gray-400 mt-1">⚠️ Deixe VAZIO para usar a cor do tema escolhido</p>
           </div>
