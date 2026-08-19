@@ -142,22 +142,22 @@ export default function ProductsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Nome do Produto *</label>
+            <label className="mb-1 block text-sm font-medium text-foreground">Nome do Produto *</label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Nome do seu produto" />
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Código / SKU</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Código / SKU</label>
               <Input value={sku} onChange={(e) => setSku(e.target.value)} placeholder="Ex: SKU-001" />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Preço de Venda (R$)</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Preço de Venda (R$)</label>
               <Input type="number" min={0} step="0.01" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Categoria</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Categoria</label>
               <select
-                className="w-full rounded-md border border-gray-300 bg-white p-2 text-sm"
+                className="w-full rounded-md border border-border bg-card p-2 text-sm text-foreground"
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
               >
@@ -208,14 +208,14 @@ export default function ProductsPage() {
             </div>
           )}
           {categories.length === 0 ? (
-            <p className="text-sm text-gray-500">Nenhuma categoria criada ainda. Crie a primeira para organizar seus produtos!</p>
+            <p className="text-sm text-muted-foreground">Nenhuma categoria criada ainda. Crie a primeira para organizar seus produtos!</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {categories.map((c) =>
                 editingCategoryId === c.id ? (
-                  <span key={c.id} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700">
+                  <span key={c.id} className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-sm text-secondary-foreground">
                     <input
-                      className="w-40 rounded border border-gray-300 px-2 py-0.5 text-sm"
+                      className="w-40 rounded border border-border bg-card px-2 py-0.5 text-sm text-foreground"
                       value={categoryEditName}
                       onChange={(e) => setCategoryEditName(e.target.value)}
                       autoFocus
@@ -228,7 +228,7 @@ export default function ProductsPage() {
                     </button>
                   </span>
                 ) : (
-                  <span key={c.id} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700">
+                  <span key={c.id} className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-sm text-secondary-foreground">
                     {c.name}
                     <button onClick={() => startEditCategory(c)} className="text-gray-400 hover:text-gray-600" title="Editar">
                       <Pencil size={13} />
@@ -247,9 +247,9 @@ export default function ProductsPage() {
         <CardHeader><CardTitle>Produtos Cadastrados</CardTitle></CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-gray-500">Carregando...</p>
+            <p className="text-muted-foreground">Carregando...</p>
           ) : products.length === 0 ? (
-            <div className="py-10 text-center text-gray-500">
+            <div className="py-10 text-center text-muted-foreground">
               <Package className="mx-auto mb-2 h-10 w-10 text-gray-300" />
               <p>Nenhum produto cadastrado ainda.</p>
             </div>
@@ -257,7 +257,7 @@ export default function ProductsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b text-left text-gray-500">
+                  <tr className="border-b text-left text-muted-foreground">
                     <th className="pb-2 pr-4">Produto</th>
                     <th className="pb-2 pr-4">Código</th>
                     <th className="pb-2 pr-4">Categoria</th>
@@ -272,11 +272,11 @@ export default function ProductsPage() {
                       <td className="py-2 pr-4">{p.sku || "—"}</td>
                       <td className="py-2 pr-4">
                         {p.category_id ? (
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800">
+                          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
                             {catMap[p.category_id] || "—"}
                           </span>
                         ) : (
-                          <span className="text-gray-400">Sem categoria</span>
+                          <span className="text-muted-foreground">Sem categoria</span>
                         )}
                       </td>
                       <td className="py-2 pr-4 font-bold">
