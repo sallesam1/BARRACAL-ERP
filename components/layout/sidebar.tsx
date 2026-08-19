@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -64,12 +64,38 @@ export function Sidebar() {
   const [expenseOpen, setExpenseOpen] = useState(false);
   const [financialOpen, setFinancialOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isViewer, setIsViewer] = useState(false);
+
+  const supabase = createClient();
+
+  // Descobre se o usuário logado é "viewer" (limitado) — se for, esconde Configurações
+  useEffect(() => {
+    async function checkRole() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (data && data.role === "viewer") {
+          setIsViewer(true);
+        }
+      } catch {}
+    }
+    checkRole();
+  }, [supabase]);
+
+  // Se for viewer, remove o botão Configurações do menu
+  const visibleBottomItems = isViewer
+    ? bottomItems.filter((item) => item.href !== "/dashboard/settings")
+    : bottomItems;
 
   const isExpenseActive = expenseItems.some((item) => pathname === item.href);
   const isFinancialActive = financialItems.some((item) => pathname === item.href);
 
   async function handleLogout() {
-    const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
@@ -172,7 +198,7 @@ export function Sidebar() {
 
           {renderGroup("Financeiro", Wallet, financialItems, financialOpen, setFinancialOpen, isFinancialActive)}
 
-          {bottomItems.map(renderLink)}
+          {visibleBottomItems.map(renderLink)}
         </nav>
 
         <div className="border-t border-border p-4">
