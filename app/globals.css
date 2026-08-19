@@ -172,4 +172,7 @@
   --border: 204 35% 88%;
   --input: 204 35% 88%;
   --ring: 215 28% 17%;
+}/* ===== CORREÇÃO GLOBAL: nenhuma janela fica branca no tema escuro ===== */
+.bg-white {
+  background-color: hsl(var(--card)) !important;
 }
