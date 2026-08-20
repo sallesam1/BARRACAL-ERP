@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,264 +10,154 @@ import { toast } from "sonner";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [backingUp, setBackingUp] = useState(false);
   const [companyName, setCompanyName] = useState("");
-  const [productName, setProductName] = useState("");
-  const [version, setVersion] = useState("");
-  const [primaryColor, setPrimaryColor] = useState("");
   const [buttonStyle, setButtonStyle] = useState("dark-premium");
-  const [users, setUsers] = useState<{ id: string; email: string; role: string; theme: string }[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
 
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     async function loadSettings() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        router.push("/login");
+        return;
+      }
 
+      // 1. Verifica se o usuário é admin — se NÃO for, bloqueia o acesso
+      const { data: userRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!userRole || userRole.role !== "admin") {
+        router.push("/dashboard");
+        return;
+      }
+
+      // 2. Carrega as configurações do admin
       const { data } = await supabase
         .from("settings")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (data) {
-        setCompanyName(data.company_name ?? "");
-        setProductName(data.product_name ?? "Meu ERP");
-        setVersion(data.version ?? "1.0.0");
-        setPrimaryColor(data.primary_color ?? "");
-        setButtonStyle(data.button_style ?? "dark-premium");
+        setCompanyName(data.company_name || "");
+        setButtonStyle(data.button_style || "dark-premium");
       }
+
+      // 3. Carrega a lista de usuários (para o admin gerenciar)
+      const { data: userList } = await supabase
+        .from("user_roles")
+        .select("user_id, email, role");
+
+      if (userList) setUsers(userList);
+
       setLoading(false);
     }
     loadSettings();
   }, []);
 
-  // Carrega a lista de usuários (para o admin definir o tema de cada um)
-  useEffect(() => {
-    async function loadUsers() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Busca os perfis (user_roles) e os temas salvos (settings)
-      const { data: roles } = await supabase.from("user_roles").select("user_id, email, role");
-      if (!roles) return;
-
-      const { data: settings } = await supabase.from("settings").select("user_id, button_style");
-
-      const list = roles.map((r: any) => {
-        const s = settings?.find((x: any) => x.user_id === r.user_id);
-        return {
-          id: r.user_id,
-          email: r.email ?? "sem e-mail",
-          role: r.role ?? "viewer",
-          theme: s?.button_style ?? "dark-premium",
-        };
-      });
-      setUsers(list);
-    }
-    loadUsers();
-  }, []);
-
-  // Salva o tema de um usuário específico (admin define o tema do irmão)
-  async function handleSetUserTheme(userId: string, theme: string) {
-    const { error } = await supabase.from("settings").upsert({
-      user_id: userId,
-      button_style: theme,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' });
-
-    if (error) {
-      toast.error("Erro ao definir tema: " + error.message);
-    } else {
-      toast.success("Tema do usuário atualizado!");
-      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, theme } : u)));
-    }
-  }
-
   async function handleSave() {
-    setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setSaving(false); return; }
+    if (!user) return;
 
     const { error } = await supabase.from("settings").upsert({
       user_id: user.id,
       company_name: companyName,
-      product_name: productName,
-      version: version,
-      primary_color: primaryColor,
       button_style: buttonStyle,
       updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' });
+    });
 
-    setSaving(false);
     if (error) {
-      toast.error("Erro ao salvar: " + error.message);
+      toast.error("Erro ao salvar configurações");
     } else {
-      toast.success("Configurações salvas!");
-      window.dispatchEvent(new Event("settings-saved"));
-      if (primaryColor) {
-        document.documentElement.style.setProperty("--primary", primaryColor);
-      }
+      toast.success("Configurações salvas! Recarregue a página.");
+      router.refresh();
     }
   }
 
-  async function fetchTable(table: string, userId: string) {
-    const { data, error } = await supabase.from(table).select("*").eq("user_id", userId);
-    if (!error && data) return data;
-    const { data: all, error: err2 } = await supabase.from(table).select("*");
-    if (!err2 && all) return all;
-    return [];
-  }
+  async function handleRoleChange(userId: string, newRole: string) {
+    const { error } = await supabase
+      .from("user_roles")
+      .update({ role: newRole })
+      .eq("user_id", userId);
 
-  async function handleBackup() {
-    setBackingUp(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setBackingUp(false); return; }
-
-    const tables = [
-      "products", "sales", "sale_items",
-      "purchases", "purchase_items", "inventory",
-      "accounts_payable", "accounts_receivable",
-      "settings", "product_categories",
-    ];
-
-    const backup: Record<string, unknown> = {
-      exported_at: new Date().toISOString(),
-      user_id: user.id,
-    };
-
-    for (const table of tables) {
-      backup[table] = await fetchTable(table, user.id);
+    if (error) {
+      toast.error("Erro ao atualizar papel do usuário");
+    } else {
+      toast.success("Papel atualizado!");
+      setUsers((prev) =>
+        prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u))
+      );
     }
-
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `backup-erp-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    setBackingUp(false);
-    toast.success("Backup gerado! Verifique seus downloads.");
   }
 
   if (loading) return <p className="p-6">Carregando...</p>;
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Configurações do Sistema</h1>
-        <p className="text-sm text-gray-500">Central de controle do ERP</p>
-      </div>
+      <h1 className="text-2xl font-bold">Configurações do Sistema</h1>
 
       <Card>
-        <CardHeader><CardTitle>🏢 Identidade</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Identidade Visual</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Nome da Empresa</label>
-            <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Sua empresa" />
+            <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Nome do Produto / Sistema</label>
-            <Input value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="Ex: Gestor Pro" />
-            <p className="text-xs text-gray-400 mt-1">É o nome que aparece na tela "Sobre"</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Versão do Sistema</label>
-            <Input value={version} onChange={(e) => setVersion(e.target.value)} placeholder="1.0.0" />
-          </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader><CardTitle>🎨 Aparência</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Tema do Sistema</label>
+            <label className="block text-sm font-medium mb-1">Estilo do Sistema</label>
             <select
-              className="w-full p-2 border rounded-md bg-card text-foreground"
+              className="w-full p-2 border rounded-md"
               value={buttonStyle}
               onChange={(e) => setButtonStyle(e.target.value)}
             >
-              <option value="light">Claro (Light)</option>
               <option value="dark-premium">Dark Premium (Fundo Escuro)</option>
-              <option value="midnight">Midnight (Meia-noite)</option>
-              <option value="emerald">Esmeralda (Emerald)</option>
-              <option value="ocean">Oceano (Ocean)</option>
+              <option value="light">Claro</option>
+              <option value="midnight">Meia-Noite</option>
+              <option value="emerald">Esmeralda</option>
+              <option value="ocean">Oceano</option>
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Cor Principal</label>
-            <div className="flex gap-2 items-center">
-              <Input type="color" className="w-12 h-10 p-1" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} />
-              <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} placeholder="Deixe vazio para usar a cor do tema" className="bg-card text-foreground" />
-            </div>
-            <p className="text-xs text-gray-400 mt-1">⚠️ Deixe VAZIO para usar a cor do tema escolhido</p>
-          </div>
+
+          <Button onClick={handleSave}>Salvar Configurações</Button>
         </CardContent>
       </Card>
 
+      {/* Lista de Usuários — só o admin vê */}
       <Card>
-        <CardHeader><CardTitle>👥 Tema dos Usuários</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-gray-500">
-            Defina o tema de cada usuário. Cada um verá o tema que você escolher aqui.
-          </p>
-          {users.length === 0 ? (
-            <p className="text-sm text-gray-400">Nenhum usuário encontrado ainda.</p>
-          ) : (
-            users.map((u) => (
-              <div key={u.id} className="flex flex-col gap-2 rounded-md border border-border p-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-medium">{u.email}</p>
-                  <p className="text-xs text-gray-400">{u.role === "admin" ? "Administrador" : "Usuário limitado"}</p>
-                </div>
-                <select
-                  className="w-full p-2 border rounded-md bg-card text-foreground sm:w-56"
-                  value={u.theme}
-                  onChange={(e) => handleSetUserTheme(u.id, e.target.value)}
-                >
-                  <option value="light">Claro (Light)</option>
-                  <option value="dark-premium">Dark Premium (Fundo Escuro)</option>
-                  <option value="midnight">Midnight (Meia-noite)</option>
-                  <option value="emerald">Esmeralda (Emerald)</option>
-                  <option value="ocean">Oceano (Ocean)</option>
-                </select>
-              </div>
-            ))
+        <CardHeader>
+          <CardTitle>Usuários do Sistema</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {users.length === 0 && (
+            <p className="text-sm text-muted-foreground">Nenhum usuário encontrado.</p>
           )}
+          {users.map((u) => (
+            <div key={u.user_id} className="flex items-center justify-between border-b pb-2">
+              <div>
+                <p className="text-sm font-medium">{u.email}</p>
+                <p className="text-xs text-muted-foreground">Papel atual: {u.role}</p>
+              </div>
+              <select
+                className="p-1 border rounded-md text-sm"
+                value={u.role}
+                onChange={(e) => handleRoleChange(u.user_id, e.target.value)}
+              >
+                <option value="admin">Admin</option>
+                <option value="viewer">Viewer</option>
+              </select>
+            </div>
+          ))}
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader><CardTitle>🔒 Backup dos Dados</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-gray-500">
-            Gera um arquivo com todos os seus cadastros. Guarde em um lugar seguro.
-          </p>
-          <Button onClick={handleBackup} disabled={backingUp}>
-            {backingUp ? "Gerando backup..." : "⬇ Gerar backup agora"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle>ℹ️ Sobre o Sistema</CardTitle></CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <p><strong>{productName || "Meu ERP"}</strong> — versão {version || "1.0.0"}</p>
-          <p className="text-gray-500">Desenvolvido para gestão do dia a dia. Seus dados ficam protegidos no banco.</p>
-        </CardContent>
-      </Card>
-
-      <div className="flex gap-2">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? "Salvando..." : "Salvar configurações"}
-        </Button>
-      </div>
     </div>
   );
 }

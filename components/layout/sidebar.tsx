@@ -25,6 +25,7 @@ import {
   FolderOpen,
   Menu,
   X,
+  Palette,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ const financialItems = [
 
 const bottomItems = [
   { href: "/dashboard/reports", label: "Relatórios", icon: BarChart3 },
+  { href: "/dashboard/theme", label: "Tema", icon: Palette },
   { href: "/dashboard/settings", label: "Configurações", icon: Settings },
 ];
 
@@ -68,7 +70,7 @@ export function Sidebar() {
 
   const supabase = createClient();
 
-  // Descobre se o usuário logado é "viewer" (limitado) — se for, esconde Configurações
+  // Descobre se o usuário logado é "viewer" (limitado)
   useEffect(() => {
     async function checkRole() {
       try {
@@ -87,15 +89,14 @@ export function Sidebar() {
     checkRole();
   }, [supabase]);
 
-  // Se for viewer, remove o botão Configurações do menu
-  const visibleBottomItems = isViewer
-    ? bottomItems.filter((item) => item.href !== "/dashboard/settings")
-    : bottomItems;
+  // Todo mundo vê "Tema"; só o admin vê "Configurações"
+  const visibleBottomItems = bottomItems.filter(
+    (item) => !(isViewer && item.href === "/dashboard/settings")
+  );
 
   const isExpenseActive = expenseItems.some((item) => pathname === item.href);
   const isFinancialActive = financialItems.some((item) => pathname === item.href);
 
-  // Abrir um grupo fecha o outro (só um aberto por vez — tela limpa)
   function toggleExpense() {
     setExpenseOpen((v) => !v);
     setFinancialOpen(false);
@@ -172,7 +173,6 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Botão hambúrguer — aparece só no mobile */}
       <button
         type="button"
         onClick={() => setMobileOpen(!mobileOpen)}
@@ -182,7 +182,6 @@ export function Sidebar() {
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
 
-      {/* Overlay escuro no mobile quando o menu está aberto */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
@@ -190,7 +189,6 @@ export function Sidebar() {
         />
       )}
 
-      {/* Sidebar — fixa no desktop, vira gaveta no mobile */}
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card text-card-foreground transition-transform duration-300",
