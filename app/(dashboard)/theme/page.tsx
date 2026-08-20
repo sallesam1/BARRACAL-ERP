@@ -22,7 +22,6 @@ export default function ThemePage() {
         return;
       }
 
-      // Carrega o tema do usuário logado (cada um tem o seu)
       const { data } = await supabase
         .from("settings")
         .select("button_style")
@@ -41,7 +40,6 @@ export default function ThemePage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Salva SÓ o tema — NÃO mexe no nome da empresa nem na cor
     const { error } = await supabase.from("settings").upsert({
       user_id: user.id,
       button_style: buttonStyle,
@@ -73,7 +71,7 @@ export default function ThemePage() {
           <div>
             <label className="block text-sm font-medium mb-1">Estilo do Sistema</label>
             <select
-              className="w-full p-2 border rounded-md"
+              className="w-full p-2 border rounded-md bg-card text-card-foreground border-border"
               value={buttonStyle}
               onChange={(e) => setButtonStyle(e.target.value)}
             >

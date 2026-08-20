@@ -115,7 +115,7 @@ export default function SettingsPage() {
           <div>
             <label className="block text-sm font-medium mb-1">Estilo do Sistema</label>
             <select
-              className="w-full p-2 border rounded-md"
+              className="w-full p-2 border rounded-md bg-card text-card-foreground border-border"
               value={buttonStyle}
               onChange={(e) => setButtonStyle(e.target.value)}
             >
@@ -147,7 +147,7 @@ export default function SettingsPage() {
                 <p className="text-xs text-muted-foreground">Papel atual: {u.role}</p>
               </div>
               <select
-                className="p-1 border rounded-md text-sm"
+                className="p-1 border rounded-md text-sm bg-card text-card-foreground border-border"
                 value={u.role}
                 onChange={(e) => handleRoleChange(u.user_id, e.target.value)}
               >

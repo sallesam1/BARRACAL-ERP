@@ -70,7 +70,6 @@ export function Sidebar() {
 
   const supabase = createClient();
 
-  // Descobre se o usuário logado é "viewer" (limitado)
   useEffect(() => {
     async function checkRole() {
       try {
@@ -89,10 +88,13 @@ export function Sidebar() {
     checkRole();
   }, [supabase]);
 
-  // Todo mundo vê "Tema"; só o admin vê "Configurações"
-  const visibleBottomItems = bottomItems.filter(
-    (item) => !(isViewer && item.href === "/dashboard/settings")
-  );
+  // ADMIN: vê Configurações (sem Tema) | VIEWER: vê Tema (sem Configurações)
+  const visibleBottomItems = bottomItems.filter((item) => {
+    if (isViewer) {
+      return item.href !== "/dashboard/settings";
+    }
+    return item.href !== "/dashboard/theme";
+  });
 
   const isExpenseActive = expenseItems.some((item) => pathname === item.href);
   const isFinancialActive = financialItems.some((item) => pathname === item.href);
