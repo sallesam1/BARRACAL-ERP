@@ -26,6 +26,7 @@ import {
   Menu,
   X,
   Palette,
+  FileText,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ const navItems = [
   { href: "/dashboard/inventory", label: "Estoque", icon: Boxes },
   { href: "/dashboard/purchases", label: "Compras", icon: ShoppingCart },
   { href: "/dashboard/sales", label: "Vendas", icon: ShoppingBag },
+  { href: "/dashboard/quotes", label: "Cotação", icon: FileText },
 ];
 
 const expenseItems = [
