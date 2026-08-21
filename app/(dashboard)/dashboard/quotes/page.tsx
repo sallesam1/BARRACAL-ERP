@@ -354,18 +354,18 @@ export default function QuotesPage() {
             {"\n"}
             Desde já agradecemos a preferência.
           </p>
-          {/* Data e assinatura */}
-          <div className="pt-36">
+          {/* Data e assinatura — espaço reduzido para caber em 1 folha */}
+          <div className="pt-16">
             <p>{cliente ? "Barra do Piraí" : ""}, {hoje}.</p>
-            <div className="mt-24">
+            <div className="mt-8">
               <p className="font-bold">Alexandre Salles.</p>
               <p className="text-[11px]">BARRACAL PRODUTOS MINERAIS LTDA</p>
             </div>
           </div>
         </div>
-        {/* Rodapé azul — SEM mt-auto, fica logo após a assinatura */}
+        {/* Rodapé azul — mt-auto empurra para o fim da folha */}
         <div
-          className="text-center px-6 py-2.5"
+          className="mt-auto text-center px-6 py-2.5"
           style={{
             backgroundColor: AZUL,
             borderTop: `4px solid ${DOURADO}`,
