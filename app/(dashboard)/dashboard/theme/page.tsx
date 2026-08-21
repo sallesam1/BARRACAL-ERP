@@ -44,7 +44,7 @@ export default function ThemePage() {
       user_id: user.id,
       button_style: buttonStyle,
       updated_at: new Date().toISOString(),
-    });
+    }, { onConflict: "user_id" });
 
     if (error) {
       toast.error("Erro ao salvar tema");
