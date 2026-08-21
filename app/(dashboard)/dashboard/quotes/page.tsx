@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 type Item = {
   id: number;
   descricao: string;
@@ -41,7 +41,6 @@ export default function QuotesPage() {
     { id: 1, descricao: "", qtd: "", valor: "" },
   ]);
   const [scale, setScale] = useState(1);
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setHoje(
@@ -234,9 +233,9 @@ export default function QuotesPage() {
       </div>
 
       {/* ===== PAPEL TIMBRADO — escala A4 para caber na tela ===== */}
+      {/* SEM print:hidden — o CSS de impressão desfaz a escala */}
       <div
-        ref={wrapperRef}
-        className="print:hidden"
+        className="proposta-wrapper"
         style={{ height: PAPEL_H * scale, width: PAPEL_W * scale, margin: "0 auto" }}
       >
         <div
@@ -407,7 +406,7 @@ export default function QuotesPage() {
         </div>
       </div>
 
-      {/* CSS de impressão — A4 normal para o PDF */}
+      {/* CSS de impressão — desfaz a escala e imprime A4 normal */}
       <style jsx global>{`
         #papel-timbrado {
           background-color: #ffffff !important;
@@ -423,6 +422,12 @@ export default function QuotesPage() {
           #papel-timbrado,
           #papel-timbrado * {
             visibility: visible !important;
+          }
+          /* Desfaz a escala do mobile e imprime A4 normal */
+          .proposta-wrapper {
+            height: auto !important;
+            width: 100% !important;
+            margin: 0 !important;
           }
           #papel-timbrado {
             position: absolute !important;
