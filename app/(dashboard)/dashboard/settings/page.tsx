@@ -65,19 +65,41 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase.from("settings").upsert({
-      user_id: user.id,
+    const payload = {
       company_name: companyName,
       button_style: buttonStyle,
       updated_at: new Date().toISOString(),
-    });
+    };
 
-    if (error) {
+    // 1º) Tenta ATUALIZAR a linha que já existe deste usuário
+    const { data: updated, error: updateError } = await supabase
+      .from("settings")
+      .update(payload)
+      .eq("user_id", user.id)
+      .select();
+
+    if (updateError) {
+      console.error("Erro ao atualizar:", updateError);
       toast.error("Erro ao salvar configurações");
-    } else {
-      toast.success("Configurações salvas! Recarregue a página.");
-      router.refresh();
+      return;
     }
+
+    // 2º) Se NÃO existia linha, CRIA uma nova
+    if (!updated || updated.length === 0) {
+      const { error: insertError } = await supabase.from("settings").insert({
+        user_id: user.id,
+        ...payload,
+      });
+
+      if (insertError) {
+        console.error("Erro ao inserir:", insertError);
+        toast.error("Erro ao salvar configurações");
+        return;
+      }
+    }
+
+    toast.success("Configurações salvas! Recarregue a página.");
+    router.refresh();
   }
 
   async function handleRoleChange(userId: string, newRole: string) {
