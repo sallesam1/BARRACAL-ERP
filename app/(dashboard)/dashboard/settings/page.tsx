@@ -28,7 +28,7 @@ export default function SettingsPage() {
       const { data: userRole } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
+        .eq("email", user.email)
         .maybeSingle();
 
       if (!userRole || userRole.role !== "admin") {
@@ -93,8 +93,9 @@ export default function SettingsPage() {
       }
     }
 
-    toast.success("Configurações salvas! Recarregue a página.");
-    router.refresh();
+    // Aplica o tema na hora, sem precisar recarregar a página
+    window.dispatchEvent(new Event("settings-saved"));
+    toast.success("Configurações salvas!");
   }
 
   async function handleRoleChange(userId: string, newRole: string) {
@@ -141,7 +142,6 @@ export default function SettingsPage() {
               <option value="midnight">Meia-Noite</option>
               <option value="emerald">Esmeralda</option>
               <option value="ocean">Oceano</option>
-              <option value="dark-sidebar">Dark Sidebar (Menu Escuro + Conteúdo Claro)</option>
             </select>
           </div>
 

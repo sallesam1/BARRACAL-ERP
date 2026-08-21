@@ -27,6 +27,7 @@ const icons = {
   theme: "M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z",
   logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
   chevron: "M6 9l6 6 6-6",
+  menu: "M3 12h18M3 6h18M3 18h18",
 };
 
 export default function DashboardLayout({
@@ -37,6 +38,7 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const supabase = createClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -51,13 +53,19 @@ export default function DashboardLayout({
       const { data: profile } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
+        .eq("email", user.email)
         .maybeSingle();
       setIsAdmin(profile?.role === "admin");
       setLoading(false);
     }
     checkAuth();
   }, []);
+
+  // Fecha o sub-menu E o menu mobile ao navegar para outra página
+  useEffect(() => {
+    setOpenMenu(null);
+    setMobileOpen(false);
+  }, [pathname]);
 
   if (loading) {
     return (
@@ -73,125 +81,164 @@ export default function DashboardLayout({
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
-  // Menu usa as cores do tema (variáveis --sidebar)
   const linkClass = (href: string) =>
     `flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-colors ${
       isActive(href)
-        ? "bg-[hsl(var(--sidebar-active))] text-[hsl(var(--sidebar-active-foreground))] font-medium"
-        : "text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))]"
+        ? "bg-[hsl(var(--primary))] text-white font-medium"
+        : "text-gray-400 hover:text-white"
     }`;
 
   const subLinkClass = (href: string) =>
     `flex items-center gap-3 px-4 py-2 pl-10 text-sm rounded-lg transition-colors ${
       isActive(href)
-        ? "bg-[hsl(var(--sidebar-active))] text-[hsl(var(--sidebar-active-foreground))] font-medium"
-        : "text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))]"
+        ? "bg-[hsl(var(--primary))] text-white font-medium"
+        : "text-gray-400 hover:text-white"
     }`;
 
   const menuBtnClass = (name: string) =>
     `flex items-center justify-between w-full px-4 py-2.5 text-sm rounded-lg transition-colors ${
       openMenu === name || isActive(`/dashboard/${name}`)
-        ? "bg-[hsl(var(--sidebar-active))] text-[hsl(var(--sidebar-active-foreground))] font-medium"
-        : "text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))]"
+        ? "bg-[hsl(var(--primary))] text-white font-medium"
+        : "text-gray-400 hover:text-white"
     }`;
+
+  const sidebarContent = (
+    <>
+      <div className="px-4 py-4 text-lg font-bold border-b border-gray-800">
+        Barracal ERP
+      </div>
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        <Link href="/dashboard" className={linkClass("/dashboard")}>
+          <Icon d={icons.dashboard} /> Dashboard
+        </Link>
+        <Link href="/dashboard/customers" className={linkClass("/dashboard/customers")}>
+          <Icon d={icons.customers} /> Clientes
+        </Link>
+        <Link href="/dashboard/suppliers" className={linkClass("/dashboard/suppliers")}>
+          <Icon d={icons.suppliers} /> Fornecedores
+        </Link>
+        <Link href="/dashboard/products" className={linkClass("/dashboard/products")}>
+          <Icon d={icons.products} /> Produtos
+        </Link>
+        <Link href="/dashboard/inventory" className={linkClass("/dashboard/inventory")}>
+          <Icon d={icons.inventory} /> Estoque
+        </Link>
+        <Link href="/dashboard/purchases" className={linkClass("/dashboard/purchases")}>
+          <Icon d={icons.purchases} /> Compras
+        </Link>
+        <Link href="/dashboard/sales" className={linkClass("/dashboard/sales")}>
+          <Icon d={icons.sales} /> Vendas
+        </Link>
+        <Link href="/dashboard/quotes" className={linkClass("/dashboard/quotes")}>
+          <Icon d={icons.quotes} /> Cotação
+        </Link>
+
+        <button onClick={() => toggleMenu("expenses")} className={menuBtnClass("expenses")}>
+          <span className="flex items-center gap-3">
+            <Icon d={icons.expenses} /> Despesas
+          </span>
+          <Icon d={icons.chevron} className={`w-4 h-4 transition-transform ${openMenu === "expenses" ? "rotate-180" : ""}`} />
+        </button>
+        {openMenu === "expenses" && (
+          <div className="space-y-1">
+            <Link href="/dashboard/expenses" className={subLinkClass("/dashboard/expenses")}>
+              Despesas
+            </Link>
+            <Link href="/dashboard/expense-categories" className={subLinkClass("/dashboard/expense-categories")}>
+              Categorias de Despesa
+            </Link>
+          </div>
+        )}
+
+        <button onClick={() => toggleMenu("financial")} className={menuBtnClass("financial")}>
+          <span className="flex items-center gap-3">
+            <Icon d={icons.financial} /> Financeiro
+          </span>
+          <Icon d={icons.chevron} className={`w-4 h-4 transition-transform ${openMenu === "financial" ? "rotate-180" : ""}`} />
+        </button>
+        {openMenu === "financial" && (
+          <div className="space-y-1">
+            <Link href="/dashboard/accounts-payable" className={subLinkClass("/dashboard/accounts-payable")}>
+              Contas a Pagar
+            </Link>
+            <Link href="/dashboard/accounts-receivable" className={subLinkClass("/dashboard/accounts-receivable")}>
+              Contas a Receber
+            </Link>
+            <Link href="/dashboard/bank-accounts" className={subLinkClass("/dashboard/bank-accounts")}>
+              Contas Bancárias
+            </Link>
+            <Link href="/dashboard/loans" className={subLinkClass("/dashboard/loans")}>
+              Empréstimos
+            </Link>
+            <Link href="/dashboard/loan-categories" className={subLinkClass("/dashboard/loan-categories")}>
+              Categorias de Empréstimo
+            </Link>
+          </div>
+        )}
+
+        <Link href="/dashboard/reports" className={linkClass("/dashboard/reports")}>
+          <Icon d={icons.reports} /> Relatórios
+        </Link>
+
+        {isAdmin ? (
+          <Link href="/dashboard/settings" className={linkClass("/dashboard/settings")}>
+            <Icon d={icons.settings} /> Configuração
+          </Link>
+        ) : (
+          <Link href="/dashboard/theme" className={linkClass("/dashboard/theme")}>
+            <Icon d={icons.theme} /> Tema
+          </Link>
+        )}
+      </nav>
+
+      <div className="p-3 border-t border-gray-800">
+        <Link href="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg text-gray-400 hover:text-white transition-colors">
+          <Icon d={icons.logout} /> Sair
+        </Link>
+      </div>
+    </>
+  );
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-64 flex flex-col bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))]">
-        <div className="px-4 py-4 text-lg font-bold border-b border-[hsl(var(--sidebar-border))]">
-          Barracal ERP
-        </div>
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          <Link href="/dashboard" className={linkClass("/dashboard")}>
-            <Icon d={icons.dashboard} /> Dashboard
-          </Link>
-          <Link href="/dashboard/customers" className={linkClass("/dashboard/customers")}>
-            <Icon d={icons.customers} /> Clientes
-          </Link>
-          <Link href="/dashboard/suppliers" className={linkClass("/dashboard/suppliers")}>
-            <Icon d={icons.suppliers} /> Fornecedores
-          </Link>
-          <Link href="/dashboard/products" className={linkClass("/dashboard/products")}>
-            <Icon d={icons.products} /> Produtos
-          </Link>
-          <Link href="/dashboard/inventory" className={linkClass("/dashboard/inventory")}>
-            <Icon d={icons.inventory} /> Estoque
-          </Link>
-          <Link href="/dashboard/purchases" className={linkClass("/dashboard/purchases")}>
-            <Icon d={icons.purchases} /> Compras
-          </Link>
-          <Link href="/dashboard/sales" className={linkClass("/dashboard/sales")}>
-            <Icon d={icons.sales} /> Vendas
-          </Link>
-          <Link href="/dashboard/quotes" className={linkClass("/dashboard/quotes")}>
-            <Icon d={icons.quotes} /> Cotação
-          </Link>
-
-          <button onClick={() => toggleMenu("expenses")} className={menuBtnClass("expenses")}>
-            <span className="flex items-center gap-3">
-              <Icon d={icons.expenses} /> Despesas
-            </span>
-            <Icon d={icons.chevron} className={`w-4 h-4 transition-transform ${openMenu === "expenses" ? "rotate-180" : ""}`} />
-          </button>
-          {openMenu === "expenses" && (
-            <div className="space-y-1">
-              <Link href="/dashboard/expenses" className={subLinkClass("/dashboard/expenses")}>
-                Despesas
-              </Link>
-              <Link href="/dashboard/expense-categories" className={subLinkClass("/dashboard/expense-categories")}>
-                Categorias de Despesa
-              </Link>
-            </div>
-          )}
-
-          <button onClick={() => toggleMenu("financial")} className={menuBtnClass("financial")}>
-            <span className="flex items-center gap-3">
-              <Icon d={icons.financial} /> Financeiro
-            </span>
-            <Icon d={icons.chevron} className={`w-4 h-4 transition-transform ${openMenu === "financial" ? "rotate-180" : ""}`} />
-          </button>
-          {openMenu === "financial" && (
-            <div className="space-y-1">
-              <Link href="/dashboard/accounts-payable" className={subLinkClass("/dashboard/accounts-payable")}>
-                Contas a Pagar
-              </Link>
-              <Link href="/dashboard/accounts-receivable" className={subLinkClass("/dashboard/accounts-receivable")}>
-                Contas a Receber
-              </Link>
-              <Link href="/dashboard/bank-accounts" className={subLinkClass("/dashboard/bank-accounts")}>
-                Contas Bancárias
-              </Link>
-              <Link href="/dashboard/loans" className={subLinkClass("/dashboard/loans")}>
-                Empréstimos
-              </Link>
-              <Link href="/dashboard/loan-categories" className={subLinkClass("/dashboard/loan-categories")}>
-                Categorias de Empréstimo
-              </Link>
-            </div>
-          )}
-
-          <Link href="/dashboard/reports" className={linkClass("/dashboard/reports")}>
-            <Icon d={icons.reports} /> Relatórios
-          </Link>
-
-          {isAdmin ? (
-            <Link href="/dashboard/settings" className={linkClass("/dashboard/settings")}>
-              <Icon d={icons.settings} /> Configuração
-            </Link>
-          ) : (
-            <Link href="/dashboard/theme" className={linkClass("/dashboard/theme")}>
-              <Icon d={icons.theme} /> Tema
-            </Link>
-          )}
-        </nav>
-
-        <div className="p-3 border-t border-[hsl(var(--sidebar-border))]">
-          <Link href="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))] transition-colors">
-            <Icon d={icons.logout} /> Sair
-          </Link>
-        </div>
+      {/* Sidebar DESKTOP — sempre visível em telas grandes */}
+      <aside className="hidden md:flex w-64 flex-col bg-[#111217] text-white">
+        {sidebarContent}
       </aside>
-      <main className="flex-1 p-6 bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">{children}</main>
+
+      {/* Sidebar MOBILE — desliza quando o hambúrguer é clicado */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-[#111217] text-white transition-transform transform md:hidden ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Conteúdo principal */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Barra superior com hambúrguer (só no mobile) */}
+        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-[#111217] text-white border-b border-gray-800">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="p-2 rounded-lg hover:bg-gray-800"
+            aria-label="Abrir menu"
+          >
+            <Icon d={icons.menu} />
+          </button>
+          <span className="font-bold">Barracal ERP</span>
+        </header>
+
+        <main className="flex-1 p-6 bg-[#0d0f12] text-white">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
