@@ -1,14 +1,11 @@
 "use client";
-
 import { useState, useEffect } from "react";
-
 type Item = {
   id: number;
   descricao: string;
   qtd: string;
   valor: string;
 };
-
 const COMPANY = {
   nome: "BARRACAL PRODUTOS MINERAIS LTDA",
   cnpj: "CNPJ 03.822.330/0001-50",
@@ -17,16 +14,13 @@ const COMPANY = {
   contato: "(24) 99981-4444 | barracal.ind@gmail.com",
   slogan: "Tradição e qualidade que constroem resultados",
 };
-
 const AZUL = "#003366";
 const DOURADO = "#C5A059";
-
 function formatBRL(valor: string): string {
   const n = parseFloat(valor.replace(/\./g, "").replace(",", "."));
   if (isNaN(n)) return "R$ 0,00";
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
-
 export default function QuotesPage() {
   const [cliente, setCliente] = useState("");
   const [contato, setContato] = useState("");
@@ -44,7 +38,6 @@ export default function QuotesPage() {
   const [itens, setItens] = useState<Item[]>([
     { id: 1, descricao: "", qtd: "", valor: "" },
   ]);
-
   useEffect(() => {
     setHoje(
       new Date().toLocaleDateString("pt-BR", {
@@ -54,36 +47,30 @@ export default function QuotesPage() {
       })
     );
   }, []);
-
   function addItem() {
     setItens((prev) => [
       ...prev,
       { id: Date.now(), descricao: "", qtd: "", valor: "" },
     ]);
   }
-
   function updateItem(id: number, campo: keyof Item, valor: string) {
     setItens((prev) =>
       prev.map((i) => (i.id === id ? { ...i, [campo]: valor } : i))
     );
   }
-
   function removeItem(id: number) {
     setItens((prev) => prev.filter((i) => i.id !== id));
   }
-
   const total = itens.reduce((acc, item) => {
     const qtd = parseFloat(item.qtd.replace(",", "."));
     const valor = parseFloat(item.valor.replace(/\./g, "").replace(",", "."));
     return acc + (isNaN(qtd) || isNaN(valor) ? 0 : qtd * valor);
   }, 0);
-
   const inputStyle = {
     color: "#111827",
     backgroundColor: "#ffffff",
     colorScheme: "light" as const,
   };
-
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -98,7 +85,6 @@ export default function QuotesPage() {
           🖨️ Imprimir / Salvar PDF
         </button>
       </div>
-
       {/* ===== FORMULÁRIO (escondido na impressão) ===== */}
       <div className="print:hidden space-y-4 border rounded-lg p-4 bg-white">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -127,7 +113,6 @@ export default function QuotesPage() {
             />
           </div>
         </div>
-
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: "#111827" }}>
             Texto de introdução (use Enter para pular linha)
@@ -140,7 +125,6 @@ export default function QuotesPage() {
             onChange={(e) => setIntroducao(e.target.value)}
           />
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1" style={{ color: "#111827" }}>
@@ -180,7 +164,6 @@ export default function QuotesPage() {
             />
           </div>
         </div>
-
         <div className="space-y-2">
           <div className="grid grid-cols-12 gap-2 text-sm font-medium" style={{ color: "#111827" }}>
             <div className="col-span-6">Descrição</div>
@@ -229,13 +212,13 @@ export default function QuotesPage() {
           </button>
         </div>
       </div>
-
       {/* ===== PAPEL TIMBRADO (o que vai para o PDF) ===== */}
       <div
         id="papel-timbrado"
         className="mx-auto shadow-lg flex flex-col"
         style={{
           maxWidth: "800px",
+          width: "100%",
           minHeight: "1123px",
           backgroundColor: "#FFFFFF",
           color: AZUL,
@@ -271,7 +254,6 @@ export default function QuotesPage() {
             </p>
           </div>
         </div>
-
         {/* Linha de endereço/contato (fora da faixa azul) */}
         <p
           className="text-center text-[11px] pt-2"
@@ -279,12 +261,10 @@ export default function QuotesPage() {
         >
           {COMPANY.endereco} | {COMPANY.contato}
         </p>
-
         {/* Título */}
         <h2 className="text-center font-bold text-[16px] mt-4" style={{ color: AZUL, backgroundColor: "#FFFFFF" }}>
           Proposta comercial.
         </h2>
-
         {/* Corpo */}
         <div
           className="px-8 mt-3 space-y-2"
@@ -302,7 +282,6 @@ export default function QuotesPage() {
           </p>
           {/* Introdução — preserva as quebras de linha do Enter */}
           <p style={{ whiteSpace: "pre-line" }}>{introducao}</p>
-
           {/* Tabela de itens */}
           <table
             className="w-full text-[12px]"
@@ -362,7 +341,6 @@ export default function QuotesPage() {
               </tr>
             </tbody>
           </table>
-
           {/* Condições — preserva as quebras de linha */}
           <p className="text-[11px]" style={{ whiteSpace: "pre-line" }}>
             <strong>Forma de pagamento:</strong> {pagamento}
@@ -377,7 +355,6 @@ export default function QuotesPage() {
             {"\n"}
             Desde já agradecemos a preferência.
           </p>
-
           {/* Data e assinatura — mais abaixo */}
           <div className="pt-36">
             <p>{cliente ? "Barra do Piraí" : ""}, {hoje}.</p>
@@ -387,7 +364,6 @@ export default function QuotesPage() {
             </div>
           </div>
         </div>
-
         {/* Rodapé azul — empurrado para o final da folha */}
         <div
           className="mt-auto text-center px-6 py-2.5"
@@ -403,7 +379,6 @@ export default function QuotesPage() {
           </p>
         </div>
       </div>
-
       {/* CSS de impressão + fundo branco + rodapé fixo */}
       <style jsx global>{`
         #papel-timbrado {
