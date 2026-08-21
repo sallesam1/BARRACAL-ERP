@@ -50,19 +50,15 @@ export default function DashboardLayout({
           router.push("/login");
           return;
         }
-        // Verifica se é admin por várias fontes (não depende de uma só)
-        let admin = false;
-        if (user.app_metadata?.role === "admin") admin = true;
-        if (user.user_metadata?.role === "admin") admin = true;
-        if (!admin) {
-          const { data: profile, error } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .maybeSingle();
-          if (!error && profile?.role === "admin") admin = true;
+        // Verifica se é admin na tabela user_roles (pelo e-mail)
+        const { data: roleRow, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("email", user.email)
+          .maybeSingle();
+        if (!error && roleRow?.role === "admin") {
+          setIsAdmin(true);
         }
-        setIsAdmin(admin);
       } catch (e) {
         setIsAdmin(false);
       } finally {
