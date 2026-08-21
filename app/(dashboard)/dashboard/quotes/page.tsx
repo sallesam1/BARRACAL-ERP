@@ -213,13 +213,13 @@ export default function QuotesPage() {
         </div>
       </div>
       {/* ===== PAPEL TIMBRADO (o que vai para o PDF) ===== */}
-      {/* SEM altura fixa e SEM mt-auto — o papel encolhe para o conteúdo */}
       <div
         id="papel-timbrado"
         className="mx-auto shadow-lg flex flex-col"
         style={{
           maxWidth: "800px",
           width: "100%",
+          minHeight: "1123px",
           backgroundColor: "#FFFFFF",
           color: AZUL,
           WebkitPrintColorAdjust: "exact",
@@ -363,9 +363,9 @@ export default function QuotesPage() {
             </div>
           </div>
         </div>
-        {/* Rodapé azul — logo após a assinatura, sem mt-auto */}
+        {/* Rodapé azul — mt-auto empurra para o fim da folha */}
         <div
-          className="text-center px-6 py-2.5"
+          className="mt-auto text-center px-6 py-2.5"
           style={{
             backgroundColor: AZUL,
             borderTop: `4px solid ${DOURADO}`,
@@ -378,14 +378,18 @@ export default function QuotesPage() {
           </p>
         </div>
       </div>
-      {/* CSS de impressão + fundo branco */}
+      {/* CSS de impressão — a correção definitiva do mobile */}
       <style jsx global>{`
         #papel-timbrado {
           background-color: #ffffff !important;
         }
         @media print {
+          /* NUNCA travar html/body com altura fixa — causa página fantasma no mobile */
           html,
           body {
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: visible !important;
             background: #ffffff !important;
           }
           body * {
@@ -395,20 +399,24 @@ export default function QuotesPage() {
           #papel-timbrado * {
             visibility: visible !important;
           }
+          /* Só o papel (que carrega o fundo) tem altura fixa A4 */
           #papel-timbrado {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
+            width: 210mm !important;
+            max-width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
             margin: 0 !important;
             box-shadow: none !important;
+            overflow: hidden !important;
             background-color: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
           @page {
-            size: A4;
+            size: A4 portrait;
             margin: 0;
           }
         }
