@@ -1,14 +1,30 @@
-import { Sidebar } from "@/components/layout/sidebar";
+async function handleSave() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto p-8">{children}</main>
-    </div>
-  );
+  const payload = {
+    button_style: buttonStyle,
+    updated_at: new Date().toISOString(),
+  };
+
+  // 1) Tenta atualizar o registro existente
+  const { error: updateError } = await supabase
+    .from("settings")
+    .update(payload)
+    .eq("user_id", user.id);
+
+  // 2) Se não havia registro, insere um novo
+  if (updateError) {
+    const { error: insertError } = await supabase
+      .from("settings")
+      .insert({ user_id: user.id, ...payload });
+
+    if (insertError) {
+      toast.error("Erro ao salvar tema");
+      return;
+    }
+  }
+
+  toast.success("Tema salvo!");
+  window.dispatchEvent(new Event("settings-saved"));
 }
