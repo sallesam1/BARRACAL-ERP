@@ -74,32 +74,32 @@ export default function DashboardLayout({
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
-  // Classes que se adaptam ao tema (claro e escuro)
+  // Layout original Dark Premium: fundo escuro, ícones, item ativo em "pílula" azul royal
   const linkClass = (href: string) =>
-    `flex items-center gap-3 px-4 py-2.5 text-sm rounded transition-colors ${
+    `flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-colors ${
       isActive(href)
-        ? "bg-blue-900 text-white font-medium dark:bg-gray-700 dark:border-l-4 dark:border-white dark:rounded-none"
-        : "text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+        ? "bg-blue-600 text-white font-medium"
+        : "text-gray-400 hover:text-white"
     }`;
 
   const subLinkClass = (href: string) =>
-    `flex items-center gap-3 px-4 py-2 pl-10 text-sm rounded transition-colors ${
+    `flex items-center gap-3 px-4 py-2 pl-10 text-sm rounded-lg transition-colors ${
       isActive(href)
-        ? "bg-blue-900 text-white font-medium dark:bg-gray-700 dark:border-l-4 dark:border-white dark:rounded-none"
-        : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+        ? "bg-blue-600 text-white font-medium"
+        : "text-gray-400 hover:text-white"
     }`;
 
   const menuBtnClass = (name: string) =>
-    `flex items-center justify-between w-full px-4 py-2.5 text-sm rounded transition-colors ${
+    `flex items-center justify-between w-full px-4 py-2.5 text-sm rounded-lg transition-colors ${
       openMenu === name || isActive(`/dashboard/${name}`)
-        ? "bg-blue-900 text-white font-medium dark:bg-gray-700 dark:border-l-4 dark:border-white dark:rounded-none"
-        : "text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+        ? "bg-blue-600 text-white font-medium"
+        : "text-gray-400 hover:text-white"
     }`;
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col dark:bg-gray-900 dark:border-gray-800">
-        <div className="px-4 py-4 text-lg font-bold text-gray-900 border-b border-gray-200 dark:text-white dark:border-gray-800">
+      <aside className="w-64 bg-gray-900 text-white flex flex-col">
+        <div className="px-4 py-4 text-lg font-bold border-b border-gray-800">
           Barracal ERP
         </div>
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -189,14 +189,14 @@ export default function DashboardLayout({
           )}
         </nav>
 
-        {/* Sair no rodapé */}
-        <div className="p-3 border-t border-gray-200 dark:border-gray-800">
-          <Link href="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm rounded text-gray-800 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-800">
+        {/* Sair no rodapé, isolado por linha divisória */}
+        <div className="p-3 border-t border-gray-800">
+          <Link href="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg text-gray-400 hover:text-white transition-colors">
             <Icon d={icons.logout} /> Sair
           </Link>
         </div>
       </aside>
-      <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-950">{children}</main>
+      <main className="flex-1 p-6 bg-gray-950">{children}</main>
     </div>
   );
 }
