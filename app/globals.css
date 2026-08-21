@@ -57,9 +57,9 @@
   }
 }
 
-/* ===== TEMAS — MESMOS 5 ORIGINAIS, MAS GRAFITE NO LUGAR DO AZUL ===== */
+/* ===== TEMAS — 5 ORIGINAIS + 6º DARK SIDEBAR ===== */
 
-/* Light Clássico — claro, botões grafite, MENU CLARO */
+/* Claro — menu claro */
 .theme-light {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
@@ -88,7 +88,7 @@
   --sidebar-border: 214.3 31.8% 91.4%;
 }
 
-/* Dark Premium — escuro, botões grafite, MENU ESCURO */
+/* Dark Premium — menu escuro */
 .theme-dark-premium {
   --background: 222 47% 8%;
   --foreground: 210 40% 98%;
@@ -117,7 +117,7 @@
   --sidebar-border: 217 32% 17%;
 }
 
-/* Midnight Violet — fundo escuro + violeta, MENU ESCURO */
+/* Meia-Noite — menu escuro */
 .theme-midnight {
   --background: 240 10% 4%;
   --foreground: 240 5% 96%;
@@ -146,7 +146,7 @@
   --sidebar-border: 240 6% 14%;
 }
 
-/* Emerald Dark — fundo escuro + verde, MENU ESCURO */
+/* Esmeralda — menu escuro */
 .theme-emerald {
   --background: 160 30% 5%;
   --foreground: 152 60% 92%;
@@ -175,7 +175,7 @@
   --sidebar-border: 160 25% 13%;
 }
 
-/* Ocean Light — claro, botões grafite, MENU CLARO */
+/* Oceano — menu claro */
 .theme-ocean {
   --background: 199 45% 97%;
   --foreground: 215 40% 12%;
@@ -204,7 +204,7 @@
   --sidebar-border: 204 35% 88%;
 }
 
-/* ===== 6º TEMA NOVO: Dark Sidebar — MENU ESCURO + CONTEÚDO CLARO ===== */
+/* 6º TEMA: Dark Sidebar — MENU ESCURO + CONTEÚDO CLARO */
 .theme-dark-sidebar {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;

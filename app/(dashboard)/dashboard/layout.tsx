@@ -85,26 +85,26 @@ export default function DashboardLayout({
     `flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-colors ${
       isActive(href)
         ? "bg-[hsl(var(--primary))] text-white font-medium"
-        : "text-gray-400 hover:text-white"
+        : "text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))]"
     }`;
 
   const subLinkClass = (href: string) =>
     `flex items-center gap-3 px-4 py-2 pl-10 text-sm rounded-lg transition-colors ${
       isActive(href)
         ? "bg-[hsl(var(--primary))] text-white font-medium"
-        : "text-gray-400 hover:text-white"
+        : "text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))]"
     }`;
 
   const menuBtnClass = (name: string) =>
     `flex items-center justify-between w-full px-4 py-2.5 text-sm rounded-lg transition-colors ${
       openMenu === name || isActive(`/dashboard/${name}`)
         ? "bg-[hsl(var(--primary))] text-white font-medium"
-        : "text-gray-400 hover:text-white"
+        : "text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))]"
     }`;
 
   const sidebarContent = (
     <>
-      <div className="px-4 py-4 text-lg font-bold border-b border-gray-800">
+      <div className="px-4 py-4 text-lg font-bold border-b border-[hsl(var(--sidebar-border))]">
         Barracal ERP
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -191,8 +191,8 @@ export default function DashboardLayout({
         )}
       </nav>
 
-      <div className="p-3 border-t border-gray-800">
-        <Link href="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg text-gray-400 hover:text-white transition-colors">
+      <div className="p-3 border-t border-[hsl(var(--sidebar-border))]">
+        <Link href="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))] transition-colors">
           <Icon d={icons.logout} /> Sair
         </Link>
       </div>
@@ -202,7 +202,7 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       {/* Sidebar DESKTOP — sempre visível em telas grandes */}
-      <aside className="hidden md:flex w-64 flex-col bg-[#111217] text-white">
+      <aside className="hidden md:flex w-64 flex-col bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))]">
         {sidebarContent}
       </aside>
 
@@ -214,7 +214,7 @@ export default function DashboardLayout({
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-[#111217] text-white transition-transform transform md:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))] transition-transform transform md:hidden ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -224,10 +224,10 @@ export default function DashboardLayout({
       {/* Conteúdo principal */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Barra superior com hambúrguer (só no mobile) */}
-        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-[#111217] text-white border-b border-gray-800">
+        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))] border-b border-[hsl(var(--sidebar-border))]">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-800"
+            className="p-2 rounded-lg hover:bg-[hsl(var(--sidebar-hover))]"
             aria-label="Abrir menu"
           >
             <Icon d={icons.menu} />
@@ -235,7 +235,7 @@ export default function DashboardLayout({
           <span className="font-bold">Barracal ERP</span>
         </header>
 
-        <main className="flex-1 p-6 bg-[#0d0f12] text-white">
+        <main className="flex-1 p-6 bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
           {children}
         </main>
       </div>

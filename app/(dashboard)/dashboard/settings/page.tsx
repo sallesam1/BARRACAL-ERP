@@ -142,6 +142,7 @@ export default function SettingsPage() {
               <option value="midnight">Meia-Noite</option>
               <option value="emerald">Esmeralda</option>
               <option value="ocean">Oceano</option>
+              <option value="dark-sidebar">Dark Sidebar (Menu Escuro + Conteúdo Claro)</option>
             </select>
           </div>
 
