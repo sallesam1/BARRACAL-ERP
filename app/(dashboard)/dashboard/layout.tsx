@@ -50,15 +50,20 @@ export default function DashboardLayout({
           router.push("/login");
           return;
         }
-        // Verifica se o usuário é admin
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .single();
-        setIsAdmin(profile?.role === "admin");
+        // Verifica se é admin por várias fontes (não depende de uma só)
+        let admin = false;
+        if (user.app_metadata?.role === "admin") admin = true;
+        if (user.user_metadata?.role === "admin") admin = true;
+        if (!admin) {
+          const { data: profile, error } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (!error && profile?.role === "admin") admin = true;
+        }
+        setIsAdmin(admin);
       } catch (e) {
-        // Se falhar, assume usuário comum
         setIsAdmin(false);
       } finally {
         setLoading(false);
@@ -81,25 +86,25 @@ export default function DashboardLayout({
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
-  // Item ativo usa a cor do tema (grafite no Dark Premium), NÃO azul fixo
+  // Item ativo usa a cor do tema (grafite no Dark Premium) — ZERO azul fixo
   const linkClass = (href: string) =>
     `flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-colors ${
       isActive(href)
-        ? "bg-[var(--primary)] text-white font-medium"
+        ? "bg-[hsl(var(--primary))] text-white font-medium"
         : "text-gray-400 hover:text-white"
     }`;
 
   const subLinkClass = (href: string) =>
     `flex items-center gap-3 px-4 py-2 pl-10 text-sm rounded-lg transition-colors ${
       isActive(href)
-        ? "bg-[var(--primary)] text-white font-medium"
+        ? "bg-[hsl(var(--primary))] text-white font-medium"
         : "text-gray-400 hover:text-white"
     }`;
 
   const menuBtnClass = (name: string) =>
     `flex items-center justify-between w-full px-4 py-2.5 text-sm rounded-lg transition-colors ${
       openMenu === name || isActive(`/dashboard/${name}`)
-        ? "bg-[var(--primary)] text-white font-medium"
+        ? "bg-[hsl(var(--primary))] text-white font-medium"
         : "text-gray-400 hover:text-white"
     }`;
 
