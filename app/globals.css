@@ -59,7 +59,7 @@
 
 /* ===== TEMAS — MESMOS 5 ORIGINAIS, MAS GRAFITE NO LUGAR DO AZUL ===== */
 
-/* Light Clássico — claro, botões grafite */
+/* Light Clássico — claro, botões grafite, MENU CLARO */
 .theme-light {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
@@ -80,9 +80,15 @@
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
   --ring: 215 28% 17%;
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 222.2 84% 4.9%;
+  --sidebar-active: 215 28% 17%;
+  --sidebar-active-foreground: 210 40% 98%;
+  --sidebar-hover: 210 40% 96.1%;
+  --sidebar-border: 214.3 31.8% 91.4%;
 }
 
-/* Dark Premium — escuro, botões grafite (não é mais azul) */
+/* Dark Premium — escuro, botões grafite, MENU ESCURO */
 .theme-dark-premium {
   --background: 222 47% 8%;
   --foreground: 210 40% 98%;
@@ -103,9 +109,15 @@
   --border: 217 32% 17%;
   --input: 217 32% 17%;
   --ring: 215 25% 27%;
+  --sidebar: 222 47% 8%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-active: 215 25% 27%;
+  --sidebar-active-foreground: 210 40% 98%;
+  --sidebar-hover: 217 32% 17%;
+  --sidebar-border: 217 32% 17%;
 }
 
-/* Midnight Violet — fundo escuro + violeta (mantém) */
+/* Midnight Violet — fundo escuro + violeta, MENU ESCURO */
 .theme-midnight {
   --background: 240 10% 4%;
   --foreground: 240 5% 96%;
@@ -126,9 +138,15 @@
   --border: 240 6% 14%;
   --input: 240 6% 14%;
   --ring: 258 90% 66%;
+  --sidebar: 240 10% 4%;
+  --sidebar-foreground: 240 5% 96%;
+  --sidebar-active: 258 90% 66%;
+  --sidebar-active-foreground: 240 10% 4%;
+  --sidebar-hover: 240 6% 12%;
+  --sidebar-border: 240 6% 14%;
 }
 
-/* Emerald Dark — fundo escuro + verde (mantém) */
+/* Emerald Dark — fundo escuro + verde, MENU ESCURO */
 .theme-emerald {
   --background: 160 30% 5%;
   --foreground: 152 60% 92%;
@@ -149,9 +167,15 @@
   --border: 160 25% 13%;
   --input: 160 25% 13%;
   --ring: 160 84% 39%;
+  --sidebar: 160 30% 5%;
+  --sidebar-foreground: 152 60% 92%;
+  --sidebar-active: 160 84% 39%;
+  --sidebar-active-foreground: 160 40% 5%;
+  --sidebar-hover: 160 25% 13%;
+  --sidebar-border: 160 25% 13%;
 }
 
-/* Ocean Light — claro, botões grafite (não é mais azul) */
+/* Ocean Light — claro, botões grafite, MENU CLARO */
 .theme-ocean {
   --background: 199 45% 97%;
   --foreground: 215 40% 12%;
@@ -172,7 +196,44 @@
   --border: 204 35% 88%;
   --input: 204 35% 88%;
   --ring: 215 28% 17%;
-}/* ===== CORREÇÃO GLOBAL: nenhuma janela fica branca no tema escuro ===== */
+  --sidebar: 199 45% 97%;
+  --sidebar-foreground: 215 40% 12%;
+  --sidebar-active: 215 28% 17%;
+  --sidebar-active-foreground: 0 0% 100%;
+  --sidebar-hover: 204 40% 92%;
+  --sidebar-border: 204 35% 88%;
+}
+
+/* ===== 6º TEMA NOVO: Dark Sidebar — MENU ESCURO + CONTEÚDO CLARO ===== */
+.theme-dark-sidebar {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 215 28% 17%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 215 28% 17%;
+  --sidebar: 222 47% 8%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-active: 215 25% 27%;
+  --sidebar-active-foreground: 210 40% 98%;
+  --sidebar-hover: 217 32% 17%;
+  --sidebar-border: 217 32% 17%;
+}
+
+/* ===== CORREÇÃO GLOBAL: nenhuma janela fica branca no tema escuro ===== */
 .bg-white {
   background-color: hsl(var(--card)) !important;
 }

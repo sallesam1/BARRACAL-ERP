@@ -25,7 +25,6 @@ export default function SettingsPage() {
         return;
       }
 
-      // 1. Verifica se o usuário é admin — se NÃO for, bloqueia o acesso
       const { data: userRole } = await supabase
         .from("user_roles")
         .select("role")
@@ -37,7 +36,6 @@ export default function SettingsPage() {
         return;
       }
 
-      // 2. Carrega as configurações do admin
       const { data } = await supabase
         .from("settings")
         .select("*")
@@ -49,7 +47,6 @@ export default function SettingsPage() {
         setButtonStyle(data.button_style || "dark-premium");
       }
 
-      // 3. Carrega a lista de usuários (para o admin gerenciar)
       const { data: userList } = await supabase
         .from("user_roles")
         .select("user_id, email, role");
@@ -71,7 +68,6 @@ export default function SettingsPage() {
       updated_at: new Date().toISOString(),
     };
 
-    // 1º) Tenta ATUALIZAR a linha que já existe deste usuário
     const { data: updated, error: updateError } = await supabase
       .from("settings")
       .update(payload)
@@ -84,7 +80,6 @@ export default function SettingsPage() {
       return;
     }
 
-    // 2º) Se NÃO existia linha, CRIA uma nova
     if (!updated || updated.length === 0) {
       const { error: insertError } = await supabase.from("settings").insert({
         user_id: user.id,
@@ -146,6 +141,7 @@ export default function SettingsPage() {
               <option value="midnight">Meia-Noite</option>
               <option value="emerald">Esmeralda</option>
               <option value="ocean">Oceano</option>
+              <option value="dark-sidebar">Dark Sidebar (Menu Escuro + Conteúdo Claro)</option>
             </select>
           </div>
 
@@ -153,7 +149,6 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Lista de Usuários — só o admin vê */}
       <Card>
         <CardHeader>
           <CardTitle>Usuários do Sistema</CardTitle>

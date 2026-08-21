@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-// Ícones SVG inline (sem depender de pacote externo)
 const Icon = ({ d, className = "w-5 h-5" }: { d: string; className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d={d} />
@@ -44,33 +43,25 @@ export default function DashboardLayout({
 
   useEffect(() => {
     async function checkAuth() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          router.push("/login");
-          return;
-        }
-        // Verifica se é admin na tabela user_roles (pelo e-mail)
-        const { data: roleRow, error } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("email", user.email)
-          .maybeSingle();
-        if (!error && roleRow?.role === "admin") {
-          setIsAdmin(true);
-        }
-      } catch (e) {
-        setIsAdmin(false);
-      } finally {
-        setLoading(false);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
       }
+      const { data: profile } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setIsAdmin(profile?.role === "admin");
+      setLoading(false);
     }
     checkAuth();
   }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
         <p>Carregando...</p>
       </div>
     );
@@ -82,32 +73,32 @@ export default function DashboardLayout({
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
-  // Item ativo usa a cor do tema (grafite no Dark Premium) — ZERO azul fixo
+  // Menu usa as cores do tema (variáveis --sidebar)
   const linkClass = (href: string) =>
     `flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-colors ${
       isActive(href)
-        ? "bg-[hsl(var(--primary))] text-white font-medium"
-        : "text-gray-400 hover:text-white"
+        ? "bg-[hsl(var(--sidebar-active))] text-[hsl(var(--sidebar-active-foreground))] font-medium"
+        : "text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))]"
     }`;
 
   const subLinkClass = (href: string) =>
     `flex items-center gap-3 px-4 py-2 pl-10 text-sm rounded-lg transition-colors ${
       isActive(href)
-        ? "bg-[hsl(var(--primary))] text-white font-medium"
-        : "text-gray-400 hover:text-white"
+        ? "bg-[hsl(var(--sidebar-active))] text-[hsl(var(--sidebar-active-foreground))] font-medium"
+        : "text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))]"
     }`;
 
   const menuBtnClass = (name: string) =>
     `flex items-center justify-between w-full px-4 py-2.5 text-sm rounded-lg transition-colors ${
       openMenu === name || isActive(`/dashboard/${name}`)
-        ? "bg-[hsl(var(--primary))] text-white font-medium"
-        : "text-gray-400 hover:text-white"
+        ? "bg-[hsl(var(--sidebar-active))] text-[hsl(var(--sidebar-active-foreground))] font-medium"
+        : "text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))]"
     }`;
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-64 bg-[#111217] text-white flex flex-col">
-        <div className="px-4 py-4 text-lg font-bold border-b border-gray-800">
+      <aside className="w-64 flex flex-col bg-[hsl(var(--sidebar))] text-[hsl(var(--sidebar-foreground))]">
+        <div className="px-4 py-4 text-lg font-bold border-b border-[hsl(var(--sidebar-border))]">
           Barracal ERP
         </div>
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -136,7 +127,6 @@ export default function DashboardLayout({
             <Icon d={icons.quotes} /> Cotação
           </Link>
 
-          {/* Despesas com sub-menu */}
           <button onClick={() => toggleMenu("expenses")} className={menuBtnClass("expenses")}>
             <span className="flex items-center gap-3">
               <Icon d={icons.expenses} /> Despesas
@@ -154,7 +144,6 @@ export default function DashboardLayout({
             </div>
           )}
 
-          {/* Financeiro com sub-menu */}
           <button onClick={() => toggleMenu("financial")} className={menuBtnClass("financial")}>
             <span className="flex items-center gap-3">
               <Icon d={icons.financial} /> Financeiro
@@ -185,7 +174,6 @@ export default function DashboardLayout({
             <Icon d={icons.reports} /> Relatórios
           </Link>
 
-          {/* Admin vê Configuração, usuário vê Tema */}
           {isAdmin ? (
             <Link href="/dashboard/settings" className={linkClass("/dashboard/settings")}>
               <Icon d={icons.settings} /> Configuração
@@ -197,14 +185,13 @@ export default function DashboardLayout({
           )}
         </nav>
 
-        {/* Sair no rodapé */}
-        <div className="p-3 border-t border-gray-800">
-          <Link href="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg text-gray-400 hover:text-white transition-colors">
+        <div className="p-3 border-t border-[hsl(var(--sidebar-border))]">
+          <Link href="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg text-[hsl(var(--sidebar-foreground))] opacity-70 hover:opacity-100 hover:bg-[hsl(var(--sidebar-hover))] transition-colors">
             <Icon d={icons.logout} /> Sair
           </Link>
         </div>
       </aside>
-      <main className="flex-1 p-6 bg-[#0d0f12]">{children}</main>
+      <main className="flex-1 p-6 bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">{children}</main>
     </div>
   );
 }

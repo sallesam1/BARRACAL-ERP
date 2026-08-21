@@ -9,6 +9,7 @@ const THEME_CLASSES = [
   "theme-midnight",
   "theme-emerald",
   "theme-ocean",
+  "theme-dark-sidebar",
 ];
 
 const THEME_MAP: Record<string, string> = {
@@ -25,6 +26,8 @@ const THEME_MAP: Record<string, string> = {
   "emerald-dark": "theme-emerald",
   ocean: "theme-ocean",
   "ocean-light": "theme-ocean",
+  "dark-sidebar": "theme-dark-sidebar",
+  "dark-sidebar-light": "theme-dark-sidebar",
 };
 
 function normalize(value: string): string {
