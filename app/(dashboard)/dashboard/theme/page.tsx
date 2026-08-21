@@ -40,18 +40,41 @@ export default function ThemePage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase.from("settings").upsert({
-      user_id: user.id,
+    const payload = {
       button_style: buttonStyle,
       updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
+    };
 
-    if (error) {
+    // 1º) Tenta ATUALIZAR a linha que já existe deste usuário
+    const { data: updated, error: updateError } = await supabase
+      .from("settings")
+      .update(payload)
+      .eq("user_id", user.id)
+      .select();
+
+    if (updateError) {
+      console.error("Erro ao atualizar:", updateError);
       toast.error("Erro ao salvar tema");
-    } else {
-      toast.success("Tema salvo!");
-      window.dispatchEvent(new Event("settings-saved"));
+      return;
     }
+
+    // 2º) Se NÃO existia linha, CRIA uma nova
+    if (!updated || updated.length === 0) {
+      const { error: insertError } = await supabase.from("settings").insert({
+        user_id: user.id,
+        ...payload,
+      });
+
+      if (insertError) {
+        console.error("Erro ao inserir:", insertError);
+        toast.error("Erro ao salvar tema");
+        return;
+      }
+    }
+
+    // Aplica o tema na hora, sem recarregar a página
+    window.dispatchEvent(new Event("settings-saved"));
+    toast.success("Tema salvo!");
   }
 
   if (loading) return <p className="p-6">Carregando...</p>;
@@ -80,6 +103,7 @@ export default function ThemePage() {
               <option value="midnight">Meia-Noite</option>
               <option value="emerald">Esmeralda</option>
               <option value="ocean">Oceano</option>
+              <option value="dark-sidebar">Dark Sidebar (Menu Escuro + Conteúdo Claro)</option>
             </select>
           </div>
 
