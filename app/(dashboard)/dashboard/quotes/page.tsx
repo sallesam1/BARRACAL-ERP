@@ -363,9 +363,10 @@ export default function QuotesPage() {
             </div>
           </div>
         </div>
-        {/* Rodapé azul — mt-auto empurra para o fim da folha */}
+        {/* Rodapé azul — FIXO no final da folha via position:fixed */}
         <div
-          className="mt-auto text-center px-6 py-2.5"
+          id="rodape"
+          className="text-center px-6 py-2.5"
           style={{
             backgroundColor: AZUL,
             borderTop: `4px solid ${DOURADO}`,
@@ -405,6 +406,16 @@ export default function QuotesPage() {
             box-shadow: none !important;
             min-height: 100vh !important;
             background-color: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          /* RODAPÉ FIXO no final da folha */
+          #rodape {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
