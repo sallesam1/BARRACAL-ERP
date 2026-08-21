@@ -213,13 +213,13 @@ export default function QuotesPage() {
         </div>
       </div>
       {/* ===== PAPEL TIMBRADO (o que vai para o PDF) ===== */}
+      {/* min-h-0 no mobile (encolhe) | md:min-h-[1123px] no desktop (A4) */}
       <div
         id="papel-timbrado"
-        className="mx-auto shadow-lg flex flex-col"
+        className="mx-auto shadow-lg flex flex-col min-h-0 md:min-h-[1123px]"
         style={{
           maxWidth: "800px",
           width: "100%",
-          minHeight: "1123px",
           backgroundColor: "#FFFFFF",
           color: AZUL,
           WebkitPrintColorAdjust: "exact",
@@ -355,16 +355,16 @@ export default function QuotesPage() {
             {"\n"}
             Desde já agradecemos a preferência.
           </p>
-          {/* Data e assinatura — espaços reduzidos no mobile */}
-          <div className="pt-36 assinatura">
+          {/* Data e assinatura — espaços menores no mobile, A4 no desktop */}
+          <div className="pt-16 md:pt-36">
             <p>{cliente ? "Barra do Piraí" : ""}, {hoje}.</p>
-            <div className="mt-24 assinatura-bloco">
+            <div className="mt-8 md:mt-24">
               <p className="font-bold">Alexandre Salles.</p>
               <p className="text-[11px]">BARRACAL PRODUTOS MINERAIS LTDA</p>
             </div>
           </div>
         </div>
-        {/* Rodapé azul — empurrado para o final da folha */}
+        {/* Rodapé azul — no mobile fica colado na assinatura; no desktop vai para o fim da folha */}
         <div
           className="mt-auto text-center px-6 py-2.5"
           style={{
@@ -379,26 +379,10 @@ export default function QuotesPage() {
           </p>
         </div>
       </div>
-      {/* CSS de impressão + fundo branco + rodapé fixo + ajuste mobile */}
+      {/* CSS de impressão + fundo branco + rodapé fixo */}
       <style jsx global>{`
         #papel-timbrado {
           background-color: #ffffff !important;
-        }
-        /* ===== AJUSTE MOBILE: encolhe o papel e reduz espaços ===== */
-        @media (max-width: 768px) {
-          #papel-timbrado {
-            min-height: auto !important;
-          }
-          #papel-timbrado .assinatura {
-            padding-top: 20px !important;
-          }
-          #papel-timbrado .assinatura-bloco {
-            margin-top: 16px !important;
-          }
-          #papel-timbrado .px-8 {
-            padding-left: 16px !important;
-            padding-right: 16px !important;
-          }
         }
         @media print {
           html,
@@ -420,7 +404,6 @@ export default function QuotesPage() {
             max-width: 100% !important;
             margin: 0 !important;
             box-shadow: none !important;
-            min-height: 100vh !important;
             background-color: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
