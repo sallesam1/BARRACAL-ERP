@@ -213,13 +213,13 @@ export default function QuotesPage() {
         </div>
       </div>
       {/* ===== PAPEL TIMBRADO (o que vai para o PDF) ===== */}
+      {/* SEM altura fixa e SEM mt-auto — o papel encolhe para o conteúdo */}
       <div
         id="papel-timbrado"
         className="mx-auto shadow-lg flex flex-col"
         style={{
           maxWidth: "800px",
           width: "100%",
-          minHeight: "1123px",
           backgroundColor: "#FFFFFF",
           color: AZUL,
           WebkitPrintColorAdjust: "exact",
@@ -354,7 +354,7 @@ export default function QuotesPage() {
             {"\n"}
             Desde já agradecemos a preferência.
           </p>
-          {/* Data e assinatura — espaço reduzido para caber em 1 folha */}
+          {/* Data e assinatura */}
           <div className="pt-16">
             <p>{cliente ? "Barra do Piraí" : ""}, {hoje}.</p>
             <div className="mt-8">
@@ -363,9 +363,9 @@ export default function QuotesPage() {
             </div>
           </div>
         </div>
-        {/* Rodapé azul — mt-auto empurra para o fim da folha */}
+        {/* Rodapé azul — logo após a assinatura, sem mt-auto */}
         <div
-          className="mt-auto text-center px-6 py-2.5"
+          className="text-center px-6 py-2.5"
           style={{
             backgroundColor: AZUL,
             borderTop: `4px solid ${DOURADO}`,
@@ -403,7 +403,6 @@ export default function QuotesPage() {
             max-width: 100% !important;
             margin: 0 !important;
             box-shadow: none !important;
-            min-height: 100vh !important;
             background-color: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
