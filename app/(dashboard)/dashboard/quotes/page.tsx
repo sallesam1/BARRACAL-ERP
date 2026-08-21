@@ -16,8 +16,6 @@ const COMPANY = {
 };
 const AZUL = "#003366";
 const DOURADO = "#C5A059";
-const PAPEL_W = 800;
-const PAPEL_H = 1123;
 function formatBRL(valor: string): string {
   const n = parseFloat(valor.replace(/\./g, "").replace(",", "."));
   if (isNaN(n)) return "R$ 0,00";
@@ -40,8 +38,6 @@ export default function QuotesPage() {
   const [itens, setItens] = useState<Item[]>([
     { id: 1, descricao: "", qtd: "", valor: "" },
   ]);
-  const [scale, setScale] = useState(1);
-
   useEffect(() => {
     setHoje(
       new Date().toLocaleDateString("pt-BR", {
@@ -51,21 +47,6 @@ export default function QuotesPage() {
       })
     );
   }, []);
-
-  // ===== ESCALA A FOLHA A4 PARA CABER NA TELA (mobile) =====
-  useEffect(() => {
-    function updateScale() {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const scaleW = (w - 24) / PAPEL_W;
-      const scaleH = h / PAPEL_H;
-      setScale(Math.min(scaleW, scaleH, 1));
-    }
-    updateScale();
-    window.addEventListener("resize", updateScale);
-    return () => window.removeEventListener("resize", updateScale);
-  }, []);
-
   function addItem() {
     setItens((prev) => [
       ...prev,
@@ -231,182 +212,173 @@ export default function QuotesPage() {
           </button>
         </div>
       </div>
-
-      {/* ===== PAPEL TIMBRADO — escala A4 para caber na tela ===== */}
-      {/* SEM print:hidden — o CSS de impressão desfaz a escala */}
+      {/* ===== PAPEL TIMBRADO (o que vai para o PDF) ===== */}
       <div
-        className="proposta-wrapper"
-        style={{ height: PAPEL_H * scale, width: PAPEL_W * scale, margin: "0 auto" }}
+        id="papel-timbrado"
+        className="mx-auto shadow-lg flex flex-col"
+        style={{
+          maxWidth: "800px",
+          width: "100%",
+          minHeight: "1123px",
+          backgroundColor: "#FFFFFF",
+          color: AZUL,
+          WebkitPrintColorAdjust: "exact",
+          printColorAdjust: "exact",
+        }}
       >
+        {/* ===== CABEÇALHO AZUL ===== */}
         <div
-          id="papel-timbrado"
-          className="flex flex-col shadow-lg"
+          className="flex items-center px-6 py-5"
           style={{
-            width: PAPEL_W,
-            minHeight: PAPEL_H,
-            transform: `scale(${scale})`,
-            transformOrigin: "top left",
-            backgroundColor: "#FFFFFF",
-            color: AZUL,
+            backgroundColor: AZUL,
+            borderBottom: `4px solid ${DOURADO}`,
             WebkitPrintColorAdjust: "exact",
             printColorAdjust: "exact",
           }}
         >
-          {/* ===== CABEÇALHO AZUL ===== */}
-          <div
-            className="flex items-center px-6 py-5"
-            style={{
-              backgroundColor: AZUL,
-              borderBottom: `4px solid ${DOURADO}`,
-              WebkitPrintColorAdjust: "exact",
-              printColorAdjust: "exact",
-            }}
-          >
-            <img
-              src="/logo.png"
-              alt="Logo Barracal"
-              className="h-24 w-auto object-contain mr-5"
-              onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
-            />
-            <div className="flex flex-col justify-center text-left">
-              <h1 className="text-lg font-bold tracking-wide leading-tight" style={{ color: "#FFFFFF" }}>
-                {COMPANY.nome}
-              </h1>
-              <p className="text-[11px] mt-1" style={{ color: DOURADO }}>
-                {COMPANY.cnpj}
-              </p>
-              <p className="italic text-[12px] mt-1" style={{ color: DOURADO }}>
-                {COMPANY.slogan}
-              </p>
-            </div>
-          </div>
-          {/* Linha de endereço/contato */}
-          <p
-            className="text-center text-[11px] pt-2"
-            style={{ color: AZUL, backgroundColor: "#FFFFFF" }}
-          >
-            {COMPANY.endereco} | {COMPANY.contato}
-          </p>
-          {/* Título */}
-          <h2 className="text-center font-bold text-[16px] mt-4" style={{ color: AZUL, backgroundColor: "#FFFFFF" }}>
-            Proposta comercial.
-          </h2>
-          {/* Corpo */}
-          <div
-            className="px-8 mt-3 space-y-2"
-            style={{ color: AZUL, fontSize: "12px", backgroundColor: "#FFFFFF" }}
-          >
-            <p>
-              <strong>À {cliente || "______________________"}.</strong>
+          <img
+            src="/logo.png"
+            alt="Logo Barracal"
+            className="h-24 w-auto object-contain mr-5"
+            onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+          />
+          <div className="flex flex-col justify-center text-left">
+            <h1 className="text-lg font-bold tracking-wide leading-tight" style={{ color: "#FFFFFF" }}>
+              {COMPANY.nome}
+            </h1>
+            <p className="text-[11px] mt-1" style={{ color: DOURADO }}>
+              {COMPANY.cnpj}
             </p>
-            <p>
-              {contato && (
-                <>
-                  A/C: <strong>{contato}</strong>.{" "}
-                </>
-              )}
-            </p>
-            <p style={{ whiteSpace: "pre-line" }}>{introducao}</p>
-            {/* Tabela de itens */}
-            <table
-              className="w-full text-[12px]"
-              style={{ borderCollapse: "collapse", backgroundColor: "#FFFFFF" }}
-            >
-              <thead>
-                <tr style={{ backgroundColor: AZUL, WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}>
-                  <th className="text-left p-1.5 font-medium" style={{ color: "#FFF", border: `1px solid ${DOURADO}` }}>
-                    Item
-                  </th>
-                  <th className="text-left p-1.5 font-medium" style={{ color: "#FFF", border: `1px solid ${DOURADO}` }}>
-                    Descrição
-                  </th>
-                  <th className="text-center p-1.5 font-medium" style={{ color: "#FFF", border: `1px solid ${DOURADO}` }}>
-                    Qtd
-                  </th>
-                  <th className="text-right p-1.5 font-medium" style={{ color: "#FFF", border: `1px solid ${DOURADO}` }}>
-                    Valor unit.
-                  </th>
-                  <th className="text-right p-1.5 font-medium" style={{ color: "#FFF", border: `1px solid ${DOURADO}` }}>
-                    Total
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {itens.map((item, idx) => {
-                  const qtd = parseFloat(item.qtd.replace(",", "."));
-                  const valor = parseFloat(item.valor.replace(/\./g, "").replace(",", "."));
-                  const sub = isNaN(qtd) || isNaN(valor) ? 0 : qtd * valor;
-                  return (
-                    <tr key={item.id}>
-                      <td style={{ border: `1px solid ${DOURADO}`, padding: "5px 8px" }}>
-                        {String(idx + 1).padStart(2, "0")}
-                      </td>
-                      <td style={{ border: `1px solid ${DOURADO}`, padding: "5px 8px" }}>
-                        {item.descricao || "—"}
-                      </td>
-                      <td className="text-center" style={{ border: `1px solid ${DOURADO}`, padding: "5px 8px" }}>
-                        {item.qtd || "—"}
-                      </td>
-                      <td className="text-right" style={{ border: `1px solid ${DOURADO}`, padding: "5px 8px" }}>
-                        {item.valor ? formatBRL(item.valor) : "—"}
-                      </td>
-                      <td className="text-right font-medium" style={{ border: `1px solid ${DOURADO}`, padding: "5px 8px" }}>
-                        {formatBRL(String(sub))}
-                      </td>
-                    </tr>
-                  );
-                })}
-                <tr>
-                  <td colSpan={4} className="text-right font-bold p-1.5" style={{ color: AZUL }}>
-                    TOTAL
-                  </td>
-                  <td className="text-right font-bold p-1.5" style={{ color: AZUL, borderTop: `2px solid ${DOURADO}` }}>
-                    {formatBRL(String(total))}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            {/* Condições */}
-            <p className="text-[11px]" style={{ whiteSpace: "pre-line" }}>
-              <strong>Forma de pagamento:</strong> {pagamento}
-              {"\n"}
-              <strong>Prazo de entrega:</strong> {entrega}
-              {frete && (
-                <>
-                  {"\n"}
-                  <strong>Condições de frete:</strong> {frete}
-                </>
-              )}
-              {"\n"}
-              Desde já agradecemos a preferência.
-            </p>
-            {/* Data e assinatura */}
-            <div className="pt-36">
-              <p>{cliente ? "Barra do Piraí" : ""}, {hoje}.</p>
-              <div className="mt-24">
-                <p className="font-bold">Alexandre Salles.</p>
-                <p className="text-[11px]">BARRACAL PRODUTOS MINERAIS LTDA</p>
-              </div>
-            </div>
-          </div>
-          {/* Rodapé azul — ancorado na borda inferior da folha */}
-          <div
-            className="mt-auto text-center px-6 py-2.5"
-            style={{
-              backgroundColor: AZUL,
-              borderTop: `4px solid ${DOURADO}`,
-              WebkitPrintColorAdjust: "exact",
-              printColorAdjust: "exact",
-            }}
-          >
-            <p className="text-[12px] font-bold" style={{ color: "#FFF" }}>
-              BARRACAL | (24) 99981-4444 | CNPJ: 03.822.330/0001-50
+            <p className="italic text-[12px] mt-1" style={{ color: DOURADO }}>
+              {COMPANY.slogan}
             </p>
           </div>
         </div>
+        {/* Linha de endereço/contato */}
+        <p
+          className="text-center text-[11px] pt-2"
+          style={{ color: AZUL, backgroundColor: "#FFFFFF" }}
+        >
+          {COMPANY.endereco} | {COMPANY.contato}
+        </p>
+        {/* Título */}
+        <h2 className="text-center font-bold text-[16px] mt-4" style={{ color: AZUL, backgroundColor: "#FFFFFF" }}>
+          Proposta comercial.
+        </h2>
+        {/* Corpo */}
+        <div
+          className="px-8 mt-3 space-y-2"
+          style={{ color: AZUL, fontSize: "12px", backgroundColor: "#FFFFFF" }}
+        >
+          <p>
+            <strong>À {cliente || "______________________"}.</strong>
+          </p>
+          <p>
+            {contato && (
+              <>
+                A/C: <strong>{contato}</strong>.{" "}
+              </>
+            )}
+          </p>
+          <p style={{ whiteSpace: "pre-line" }}>{introducao}</p>
+          {/* Tabela de itens */}
+          <table
+            className="w-full text-[12px]"
+            style={{ borderCollapse: "collapse", backgroundColor: "#FFFFFF" }}
+          >
+            <thead>
+              <tr style={{ backgroundColor: AZUL, WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}>
+                <th className="text-left p-1.5 font-medium" style={{ color: "#FFF", border: `1px solid ${DOURADO}` }}>
+                  Item
+                </th>
+                <th className="text-left p-1.5 font-medium" style={{ color: "#FFF", border: `1px solid ${DOURADO}` }}>
+                  Descrição
+                </th>
+                <th className="text-center p-1.5 font-medium" style={{ color: "#FFF", border: `1px solid ${DOURADO}` }}>
+                  Qtd
+                </th>
+                <th className="text-right p-1.5 font-medium" style={{ color: "#FFF", border: `1px solid ${DOURADO}` }}>
+                  Valor unit.
+                </th>
+                <th className="text-right p-1.5 font-medium" style={{ color: "#FFF", border: `1px solid ${DOURADO}` }}>
+                  Total
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {itens.map((item, idx) => {
+                const qtd = parseFloat(item.qtd.replace(",", "."));
+                const valor = parseFloat(item.valor.replace(/\./g, "").replace(",", "."));
+                const sub = isNaN(qtd) || isNaN(valor) ? 0 : qtd * valor;
+                return (
+                  <tr key={item.id}>
+                    <td style={{ border: `1px solid ${DOURADO}`, padding: "5px 8px" }}>
+                      {String(idx + 1).padStart(2, "0")}
+                    </td>
+                    <td style={{ border: `1px solid ${DOURADO}`, padding: "5px 8px" }}>
+                      {item.descricao || "—"}
+                    </td>
+                    <td className="text-center" style={{ border: `1px solid ${DOURADO}`, padding: "5px 8px" }}>
+                      {item.qtd || "—"}
+                    </td>
+                    <td className="text-right" style={{ border: `1px solid ${DOURADO}`, padding: "5px 8px" }}>
+                      {item.valor ? formatBRL(item.valor) : "—"}
+                    </td>
+                    <td className="text-right font-medium" style={{ border: `1px solid ${DOURADO}`, padding: "5px 8px" }}>
+                      {formatBRL(String(sub))}
+                    </td>
+                  </tr>
+                );
+              })}
+              <tr>
+                <td colSpan={4} className="text-right font-bold p-1.5" style={{ color: AZUL }}>
+                  TOTAL
+                </td>
+                <td className="text-right font-bold p-1.5" style={{ color: AZUL, borderTop: `2px solid ${DOURADO}` }}>
+                  {formatBRL(String(total))}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          {/* Condições */}
+          <p className="text-[11px]" style={{ whiteSpace: "pre-line" }}>
+            <strong>Forma de pagamento:</strong> {pagamento}
+            {"\n"}
+            <strong>Prazo de entrega:</strong> {entrega}
+            {frete && (
+              <>
+                {"\n"}
+                <strong>Condições de frete:</strong> {frete}
+              </>
+            )}
+            {"\n"}
+            Desde já agradecemos a preferência.
+          </p>
+          {/* Data e assinatura */}
+          <div className="pt-36">
+            <p>{cliente ? "Barra do Piraí" : ""}, {hoje}.</p>
+            <div className="mt-24">
+              <p className="font-bold">Alexandre Salles.</p>
+              <p className="text-[11px]">BARRACAL PRODUTOS MINERAIS LTDA</p>
+            </div>
+          </div>
+        </div>
+        {/* Rodapé azul — SEM mt-auto, fica logo após a assinatura */}
+        <div
+          className="text-center px-6 py-2.5"
+          style={{
+            backgroundColor: AZUL,
+            borderTop: `4px solid ${DOURADO}`,
+            WebkitPrintColorAdjust: "exact",
+            printColorAdjust: "exact",
+          }}
+        >
+          <p className="text-[12px] font-bold" style={{ color: "#FFF" }}>
+            BARRACAL | (24) 99981-4444 | CNPJ: 03.822.330/0001-50
+          </p>
+        </div>
       </div>
-
-      {/* CSS de impressão — desfaz a escala e imprime A4 normal */}
+      {/* CSS de impressão + fundo branco */}
       <style jsx global>{`
         #papel-timbrado {
           background-color: #ffffff !important;
@@ -423,12 +395,6 @@ export default function QuotesPage() {
           #papel-timbrado * {
             visibility: visible !important;
           }
-          /* Desfaz a escala do mobile e imprime A4 normal */
-          .proposta-wrapper {
-            height: auto !important;
-            width: 100% !important;
-            margin: 0 !important;
-          }
           #papel-timbrado {
             position: absolute !important;
             left: 0 !important;
@@ -437,7 +403,6 @@ export default function QuotesPage() {
             max-width: 100% !important;
             margin: 0 !important;
             box-shadow: none !important;
-            transform: none !important;
             min-height: 100vh !important;
             background-color: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
