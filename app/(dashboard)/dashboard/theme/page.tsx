@@ -49,8 +49,8 @@ export default function ThemePage() {
     if (error) {
       toast.error("Erro ao salvar tema");
     } else {
-      toast.success("Tema salvo! Recarregue a página.");
-      router.refresh();
+      toast.success("Tema salvo!");
+      window.dispatchEvent(new Event("settings-saved"));
     }
   }
 
