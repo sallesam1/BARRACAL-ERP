@@ -10,8 +10,8 @@ const COMPANY = {
   nome: "BARRACAL PRODUTOS MINERAIS LTDA",
   cnpj: "CNPJ 03.822.330/0001-50",
   endereco:
-    "Rua Projetada A, nº 440 – Dorândia – Barra do Piraí/RJ – CEP 27110-153",
-  contato: "(24) 99981-4444 | barracal.ind@gmail.com",
+    "Rua Projetada A, nº 400 – Dorândia – Barra do Piraí/RJ – CEP 27.143-400",
+  contato: "(24) 99981-4444 | vendas@barracal.com.br",
   slogan: "Tradição e qualidade que constroem resultados",
 };
 const AZUL = "#003366";
@@ -378,18 +378,14 @@ export default function QuotesPage() {
           </p>
         </div>
       </div>
-      {/* CSS de impressão — a correção definitiva do mobile */}
+      {/* CSS de impressão + fundo branco */}
       <style jsx global>{`
         #papel-timbrado {
           background-color: #ffffff !important;
         }
         @media print {
-          /* NUNCA travar html/body com altura fixa — causa página fantasma no mobile */
           html,
           body {
-            height: auto !important;
-            min-height: 0 !important;
-            overflow: visible !important;
             background: #ffffff !important;
           }
           body * {
@@ -399,24 +395,21 @@ export default function QuotesPage() {
           #papel-timbrado * {
             visibility: visible !important;
           }
-          /* Só o papel (que carrega o fundo) tem altura fixa A4 */
           #papel-timbrado {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 210mm !important;
-            max-width: 210mm !important;
-            height: 297mm !important;
-            min-height: 297mm !important;
+            width: 100% !important;
+            max-width: 100% !important;
             margin: 0 !important;
             box-shadow: none !important;
-            overflow: hidden !important;
+            min-height: 100vh !important;
             background-color: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
           @page {
-            size: A4 portrait;
+            size: A4;
             margin: 0;
           }
         }
