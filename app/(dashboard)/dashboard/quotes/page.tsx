@@ -354,9 +354,9 @@ export default function QuotesPage() {
             {"\n"}
             Desde já agradecemos a preferência.
           </p>
-          {/* Data e assinatura */}
+          {/* Data e assinatura — "Barra do Piraí" SEMPRE aparece */}
           <div className="pt-16">
-            <p>{cliente ? "Barra do Piraí" : ""}, {hoje}.</p>
+            <p>Barra do Piraí, {hoje}.</p>
             <div className="mt-8">
               <p className="font-bold">Alexandre Salles.</p>
               <p className="text-[11px]">BARRACAL PRODUTOS MINERAIS LTDA</p>
