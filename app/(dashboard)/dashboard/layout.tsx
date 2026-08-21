@@ -44,18 +44,25 @@ export default function DashboardLayout({
 
   useEffect(() => {
     async function checkAuth() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login");
-        return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push("/login");
+          return;
+        }
+        // Verifica se o usuário é admin
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        setIsAdmin(profile?.role === "admin");
+      } catch (e) {
+        // Se falhar, assume usuário comum
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
       }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      setIsAdmin(profile?.role === "admin");
-      setLoading(false);
     }
     checkAuth();
   }, []);
@@ -74,31 +81,31 @@ export default function DashboardLayout({
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
-  // Layout original Dark Premium: fundo escuro, ícones, item ativo em "pílula" azul royal
+  // Item ativo usa a cor do tema (grafite no Dark Premium), NÃO azul fixo
   const linkClass = (href: string) =>
     `flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-colors ${
       isActive(href)
-        ? "bg-blue-600 text-white font-medium"
+        ? "bg-[var(--primary)] text-white font-medium"
         : "text-gray-400 hover:text-white"
     }`;
 
   const subLinkClass = (href: string) =>
     `flex items-center gap-3 px-4 py-2 pl-10 text-sm rounded-lg transition-colors ${
       isActive(href)
-        ? "bg-blue-600 text-white font-medium"
+        ? "bg-[var(--primary)] text-white font-medium"
         : "text-gray-400 hover:text-white"
     }`;
 
   const menuBtnClass = (name: string) =>
     `flex items-center justify-between w-full px-4 py-2.5 text-sm rounded-lg transition-colors ${
       openMenu === name || isActive(`/dashboard/${name}`)
-        ? "bg-blue-600 text-white font-medium"
+        ? "bg-[var(--primary)] text-white font-medium"
         : "text-gray-400 hover:text-white"
     }`;
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-64 bg-gray-900 text-white flex flex-col">
+      <aside className="w-64 bg-[#111217] text-white flex flex-col">
         <div className="px-4 py-4 text-lg font-bold border-b border-gray-800">
           Barracal ERP
         </div>
@@ -189,14 +196,14 @@ export default function DashboardLayout({
           )}
         </nav>
 
-        {/* Sair no rodapé, isolado por linha divisória */}
+        {/* Sair no rodapé */}
         <div className="p-3 border-t border-gray-800">
           <Link href="/login" className="flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg text-gray-400 hover:text-white transition-colors">
             <Icon d={icons.logout} /> Sair
           </Link>
         </div>
       </aside>
-      <main className="flex-1 p-6 bg-gray-950">{children}</main>
+      <main className="flex-1 p-6 bg-[#0d0f12]">{children}</main>
     </div>
   );
 }
