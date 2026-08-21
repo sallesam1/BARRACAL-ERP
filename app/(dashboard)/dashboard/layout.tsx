@@ -1,30 +1,37 @@
-async function handleSave() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+"use client";
 
-  const payload = {
-    button_style: buttonStyle,
-    updated_at: new Date().toISOString(),
-  };
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
-  // 1) Tenta atualizar o registro existente
-  const { error: updateError } = await supabase
-    .from("settings")
-    .update(payload)
-    .eq("user_id", user.id);
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+  const router = useRouter();
 
-  // 2) Se não havia registro, insere um novo
-  if (updateError) {
-    const { error: insertError } = await supabase
-      .from("settings")
-      .insert({ user_id: user.id, ...payload });
-
-    if (insertError) {
-      toast.error("Erro ao salvar tema");
-      return;
+  useEffect(() => {
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      setLoading(false);
     }
+    checkAuth();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Carregando...</p>
+      </div>
+    );
   }
 
-  toast.success("Tema salvo!");
-  window.dispatchEvent(new Event("settings-saved"));
+  return <>{children}</>;
 }
