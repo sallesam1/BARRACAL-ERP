@@ -355,10 +355,10 @@ export default function QuotesPage() {
             {"\n"}
             Desde já agradecemos a preferência.
           </p>
-          {/* Data e assinatura — mais abaixo */}
-          <div className="pt-36">
+          {/* Data e assinatura — espaços reduzidos no mobile */}
+          <div className="pt-36 assinatura">
             <p>{cliente ? "Barra do Piraí" : ""}, {hoje}.</p>
-            <div className="mt-24">
+            <div className="mt-24 assinatura-bloco">
               <p className="font-bold">Alexandre Salles.</p>
               <p className="text-[11px]">BARRACAL PRODUTOS MINERAIS LTDA</p>
             </div>
@@ -379,10 +379,26 @@ export default function QuotesPage() {
           </p>
         </div>
       </div>
-      {/* CSS de impressão + fundo branco + rodapé fixo */}
+      {/* CSS de impressão + fundo branco + rodapé fixo + ajuste mobile */}
       <style jsx global>{`
         #papel-timbrado {
           background-color: #ffffff !important;
+        }
+        /* ===== AJUSTE MOBILE: encolhe o papel e reduz espaços ===== */
+        @media (max-width: 768px) {
+          #papel-timbrado {
+            min-height: auto !important;
+          }
+          #papel-timbrado .assinatura {
+            padding-top: 20px !important;
+          }
+          #papel-timbrado .assinatura-bloco {
+            margin-top: 16px !important;
+          }
+          #papel-timbrado .px-8 {
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+          }
         }
         @media print {
           html,
