@@ -30,7 +30,6 @@ export default function CustomersPage() {
     const { data } = await supabase
       .from("customers")
       .select("*")
-      .eq("user_id", user.id)
       .order("name");
     setCustomers(data || []);
     setLoading(false);
