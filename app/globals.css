@@ -1,16 +1,12 @@
-/* ===== CORREÇÃO GLOBAL: dropdowns legíveis em TODOS os temas ===== */
-select, option {
-  background-color: #ffffff !important;
-  color: #1e293b !important;
+/* ===== CORREÇÃO DEFINITIVA: dropdowns legíveis em TODOS os temas ===== */
+select,
+select option {
+  background-color: hsl(var(--input)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
 }
-.theme-dark-premium select, .theme-dark-premium option,
-.theme-midnight select, .theme-midnight option,
-.theme-emerald select, .theme-emerald option {
-  background-color: #1e293b !important;
-  color: #e2e8f0 !important;
-}
-.theme-dark-premium select option:hover,
-.theme-midnight select option:hover,
-.theme-emerald select option:hover {
-  background-color: #334155 !important;
+select option:hover,
+select option:checked {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
