@@ -32,7 +32,6 @@ export default function ExpenseCategoriesPage() {
       const { data } = await supabase
         .from("expense_categories")
         .select("*")
-        .eq("user_id", user.id)
         .order("name");
       if (data) setCategories(data);
     } catch (e: any) {
@@ -70,8 +69,7 @@ export default function ExpenseCategoriesPage() {
         const { error } = await supabase
           .from("expense_categories")
           .update({ name: newName.trim() })
-          .eq("id", editingId)
-          .eq("user_id", user.id);
+          .eq("id", editingId);
         if (error) throw error;
         setMessage({ type: "success", text: "Categoria atualizada!" });
         cancelEdit();
@@ -101,8 +99,7 @@ export default function ExpenseCategoriesPage() {
       const { error } = await supabase
         .from("expense_categories")
         .delete()
-        .eq("id", id)
-        .eq("user_id", user.id);
+        .eq("id", id);
       if (error) throw error;
       setMessage({ type: "success", text: "Categoria removida." });
       load();
