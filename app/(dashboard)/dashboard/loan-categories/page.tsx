@@ -43,7 +43,6 @@ export default function LoanCategoriesPage() {
       const { data } = await supabase
         .from("loan_categories")
         .select("*")
-        .eq("user_id", user.id)
         .order("name");
       if (data) setCategories(data);
     } catch (e: any) {
@@ -86,7 +85,7 @@ export default function LoanCategoriesPage() {
 
       let error: any = null;
       if (editingId) {
-        ({ error } = await supabase.from("loan_categories").update(payload).eq("id", editingId).eq("user_id", user.id));
+        ({ error } = await supabase.from("loan_categories").update(payload).eq("id", editingId));
       } else {
         ({ error } = await supabase.from("loan_categories").insert(payload));
       }
@@ -111,7 +110,7 @@ export default function LoanCategoriesPage() {
         setMessage({ type: "error", text: "Usuário não autenticado." });
         return;
       }
-      const { error } = await supabase.from("loan_categories").delete().eq("id", id).eq("user_id", user.id);
+      const { error } = await supabase.from("loan_categories").delete().eq("id", id);
       if (error) {
         setMessage({ type: "error", text: "Erro ao excluir: " + error.message });
       } else {
