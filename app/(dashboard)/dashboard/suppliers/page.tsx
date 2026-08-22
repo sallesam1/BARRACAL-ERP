@@ -1,15 +1,36 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Pencil, Trash2, Building2 } from "lucide-react";
+
 const ESTADOS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+
 const vazio = {
   name: "", cnpj: "", ie: "", contact_name: "", phone: "",
-  email: "", address: "", city: "", uf: "", notes: "",
+  email: "", address: "", neighborhood: "", complement: "",
+  city: "", uf: "", notes: "",
 };
+
+// Máscara CNPJ/CPF: 000.000.000-00 (CPF) ou 00.000.000/0000-00 (CNPJ)
+function maskCnpjCpf(value: string): string {
+  const d = value.replace(/\D/g, "").slice(0, 14);
+  if (d.length <= 11) {
+    return d
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+  }
+  return d
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
 export default function SuppliersPage() {
   const supabase = createClient();
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -19,6 +40,7 @@ export default function SuppliersPage() {
   const [form, setForm] = useState<any>({ ...vazio });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
@@ -29,25 +51,31 @@ export default function SuppliersPage() {
     setSuppliers(data || []);
     setLoading(false);
   }
+
   useEffect(() => { load(); }, []);
+
   const set = (campo: string, valor: any) => setForm((f: any) => ({ ...f, [campo]: valor }));
+
   function abrirNovo() {
     setEditId(null);
     setForm({ ...vazio });
     setShowForm(true);
     setMessage(null);
   }
+
   function abrirEdicao(s: any) {
     setEditId(s.id);
     setForm({
       name: s.name || "", cnpj: s.cnpj || "", ie: s.ie || "",
       contact_name: s.contact_name || "", phone: s.phone || "",
-      email: s.email || "", address: s.address || "", city: s.city || "",
-      uf: s.uf || "", notes: s.notes || "",
+      email: s.email || "", address: s.address || "",
+      neighborhood: s.neighborhood || "", complement: s.complement || "",
+      city: s.city || "", uf: s.uf || "", notes: s.notes || "",
     });
     setShowForm(true);
     setMessage(null);
   }
+
   async function salvar() {
     if (!form.name.trim()) {
       setMessage({ type: "error", text: "Informe o nome / razão social." });
@@ -78,6 +106,7 @@ export default function SuppliersPage() {
     setSaving(false);
     load();
   }
+
   async function excluir(id: string, nome: string) {
     if (!confirm(`Excluir o fornecedor "${nome}"?`)) return;
     const { error } = await supabase.from("suppliers").delete().eq("id", id);
@@ -88,7 +117,9 @@ export default function SuppliersPage() {
     setMessage({ type: "success", text: "Fornecedor excluído." });
     load();
   }
+
   if (loading) return <p className="p-6">Carregando...</p>;
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -99,9 +130,11 @@ export default function SuppliersPage() {
           </Button>
         )}
       </div>
+
       {message && (
         <p className={`text-sm ${message.type === "success" ? "text-green-600" : "text-red-600"}`}>{message.text}</p>
       )}
+
       {showForm && (
         <Card>
           <CardHeader>
@@ -115,7 +148,12 @@ export default function SuppliersPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">CNPJ</label>
-                <Input value={form.cnpj} onChange={(e) => set("cnpj", e.target.value)} placeholder="00.000.000/0000-00" />
+                <Input
+                  value={form.cnpj}
+                  onChange={(e) => set("cnpj", maskCnpjCpf(e.target.value))}
+                  placeholder="00.000.000/0000-00"
+                  inputMode="numeric"
+                />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Inscrição Estadual</label>
@@ -135,7 +173,15 @@ export default function SuppliersPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Endereço</label>
-                <Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Rua, número, bairro" />
+                <Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Rua, número" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Bairro</label>
+                <Input value={form.neighborhood} onChange={(e) => set("neighborhood", e.target.value)} placeholder="Ex: Centro" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Complemento</label>
+                <Input value={form.complement} onChange={(e) => set("complement", e.target.value)} placeholder="Ex: Galpão 2, sala 101" />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Cidade</label>
@@ -164,6 +210,7 @@ export default function SuppliersPage() {
           </CardContent>
         </Card>
       )}
+
       <Card>
         <CardHeader><CardTitle>Fornecedores Cadastrados</CardTitle></CardHeader>
         <CardContent>
