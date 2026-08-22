@@ -5,12 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowDownCircle, ArrowUpCircle, Check, Pencil, Wallet, Trash2, Plus, X } from "lucide-react";
-
 const CATEGORIES = ["Saldo Inicial", "Juros", "Multa", "Venda de Ativo", "Venda Antecipada", "Empréstimo", "Outros"];
-
 const brl = (v: number) =>
   (v < 0 ? "-" : "") + Math.abs(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
 function maskAmount(value: string): string {
   let neg = value.startsWith("-");
   let cleaned = value.replace(/[^\d,]/g, "");
@@ -26,7 +23,6 @@ function parseAmount(v: string): number {
   const n = parseFloat(v.replace(/[^\d,]/g, "").replace(/\./g, "").replace(",", ".")) || 0;
   return neg ? -n : n;
 }
-
 export default function FinanceiroPage() {
   const [txs, setTxs] = useState<any[]>([]);
   const [type, setType] = useState<"entrada" | "saida">("entrada");
@@ -39,21 +35,17 @@ export default function FinanceiroPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const supabase = createClient();
-
   useEffect(() => { load(); }, []);
-
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { data } = await supabase
       .from("financial_transactions")
       .select("*")
-      .eq("user_id", user.id)
       .order("transaction_date", { ascending: false })
       .limit(500);
     if (data) setTxs(data);
   }
-
   function resetForm() {
     setDescription("");
     setAmount("");
@@ -61,7 +53,6 @@ export default function FinanceiroPage() {
     setEditingId(null);
     setMessage(null);
   }
-
   function startEdit(t: any) {
     setEditingId(t.id);
     setType(t.type === "saida" ? "saida" : "entrada");
@@ -73,7 +64,6 @@ export default function FinanceiroPage() {
     setMessage(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
   async function handleSave() {
     const value = parseAmount(amount);
     if (!description.trim()) return setMessage({ type: "error", text: "Informe a descrição." });
@@ -82,7 +72,6 @@ export default function FinanceiroPage() {
     setMessage(null);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setMessage({ type: "error", text: "Usuário não autenticado." }); setSaving(false); return; }
-
     const payload = {
       type,
       description: description.trim(),
@@ -91,7 +80,6 @@ export default function FinanceiroPage() {
       transaction_date: date,
       notes: notes.trim() || null,
     };
-
     if (editingId) {
       const { error } = await supabase.from("financial_transactions").update(payload).eq("id", editingId);
       if (error) {
@@ -115,13 +103,11 @@ export default function FinanceiroPage() {
     setTimeout(() => setMessage(null), 2500);
     load();
   }
-
   async function handleDelete(id: string) {
     if (!confirm("Excluir este lançamento? Ele sairá do saldo e do histórico. Prefira EDITAR em vez de excluir.")) return;
     await supabase.from("financial_transactions").delete().eq("id", id);
     load();
   }
-
   const saldoInicial = txs
     .filter((t) => t.category === "Saldo Inicial")
     .reduce((a, t) => a + (t.type === "entrada" ? t.amount : -t.amount), 0);
@@ -132,7 +118,6 @@ export default function FinanceiroPage() {
     .filter((t) => t.type === "saida")
     .reduce((a, t) => a + t.amount, 0);
   const saldo = saldoInicial + entradas - saidas;
-
   return (
     <div className="space-y-6 p-6">
       <h1 className="text-2xl font-bold">Financeiro</h1>
