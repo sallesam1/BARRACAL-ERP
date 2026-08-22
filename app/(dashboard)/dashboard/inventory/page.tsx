@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, AlertTriangle, Boxes, Scale, TrendingUp, TrendingDown } from "lucide-react";
-
 export default function EstoquePage() {
   const supabase = createClient();
   const [items, setItems] = useState<any[]>([]);
@@ -14,18 +13,16 @@ export default function EstoquePage() {
   const [ajusteId, setAjusteId] = useState<string | null>(null);
   const [ajusteForm, setAjusteForm] = useState({ type: "entrada", quantity: "", reference: "" });
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
   const load = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
     const { data: prods } = await supabase
-      .from("products").select("id, name").eq("user_id", user.id).order("name");
+      .from("products").select("id, name").order("name");
     const { data: inv } = await supabase
-      .from("inventory").select("*").eq("user_id", user.id);
+      .from("inventory").select("*");
     const { data: movs } = await supabase
       .from("inventory_movements")
       .select("id, type, quantity, reference, created_at, product:products(name)")
-      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(30);
     setMovements(movs || []);
@@ -40,25 +37,20 @@ export default function EstoquePage() {
     }));
     setLoading(false);
   }, [supabase]);
-
   useEffect(() => { load(); }, [load]);
-
   function statusItem(qty: number, min: number) {
     if (!qty || qty <= 0) return { label: "Zerado", cor: "bg-red-100 text-red-700" };
     if (qty < (min || 0)) return { label: "Baixo", cor: "bg-amber-100 text-amber-700" };
     return { label: "OK", cor: "bg-green-100 text-green-700" };
   }
-
   function tipoMov(m: any) {
     if (m.type === "entrada") return { label: "Entrada", cor: "text-green-600", sinal: "+" };
     if (m.type === "saida") return { label: "Saída", cor: "text-red-600", sinal: "−" };
     return { label: "Ajuste", cor: "text-blue-600", sinal: "±" };
   }
-
   const fmtDataHora = (d: string) =>
     d ? new Date(d).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
   const fmtQtd = (v: number) => Number(v || 0).toLocaleString("pt-BR");
-
   // ===== SALDO TOTAL =====
   const saldoTotal = items.reduce((a, i) => a + (Number(i.quantity) || 0), 0);
   const positivos = items.filter((i) => (Number(i.quantity) || 0) > 0);
@@ -67,7 +59,6 @@ export default function EstoquePage() {
   const saldoNegativo = negativos.reduce((a, i) => a + (Number(i.quantity) || 0), 0);
   const baixos = items.filter((i) => i.quantity > 0 && i.quantity < (i.min_quantity || 0)).length;
   const zerados = items.filter((i) => !i.quantity || i.quantity <= 0).length;
-
   async function salvarAjuste() {
     if (!ajusteId) return;
     const qty = parseFloat(String(ajusteForm.quantity).replace(",", "."));
@@ -101,13 +92,10 @@ export default function EstoquePage() {
     setAjusteForm({ type: "entrada", quantity: "", reference: "" });
     load();
   }
-
   if (loading) return <p className="p-6">Carregando...</p>;
-
   return (
     <div className="space-y-6 p-6">
       <h1 className="text-2xl font-bold">Estoque</h1>
-
       {/* ===== JANELA DE SALDO TOTAL (padrão escuro do ERP) ===== */}
       <Card>
         <CardHeader>
@@ -147,7 +135,6 @@ export default function EstoquePage() {
           </div>
         </CardContent>
       </Card>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="pt-6">
@@ -183,11 +170,9 @@ export default function EstoquePage() {
           </CardContent>
         </Card>
       </div>
-
       {message && (
         <p className={`text-sm ${message.type === "success" ? "text-green-600" : "text-red-600"}`}>{message.text}</p>
       )}
-
       <Card>
         <CardHeader><CardTitle>Saldo Atual</CardTitle></CardHeader>
         <CardContent>
@@ -266,7 +251,6 @@ export default function EstoquePage() {
           )}
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader><CardTitle>Últimas Movimentações</CardTitle></CardHeader>
         <CardContent>
