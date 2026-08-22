@@ -41,12 +41,10 @@ export default function AccountsPayablePage() {
         supabase
           .from("accounts_payable")
           .select("*")
-          .eq("user_id", user.id)
           .order("due_date", { ascending: true }),
         supabase
           .from("purchases")
-          .select("id, purchase_date")
-          .eq("user_id", user.id),
+          .select("id, purchase_date"),
       ]);
 
       if (payRes.data) setPayables(payRes.data);
@@ -75,8 +73,7 @@ export default function AccountsPayablePage() {
       const { error } = await supabase
         .from("accounts_payable")
         .update({ status: "paid" })
-        .eq("id", id)
-        .eq("user_id", user.id);
+        .eq("id", id);
       if (error) throw error;
       setMessage({ type: "success", text: "Boleto marcado como pago!" });
       load();
@@ -95,8 +92,7 @@ export default function AccountsPayablePage() {
       const { error } = await supabase
         .from("accounts_payable")
         .update({ status: "pending" })
-        .eq("id", id)
-        .eq("user_id", user.id);
+        .eq("id", id);
       if (error) throw error;
       setMessage({ type: "success", text: "Boleto reaberto." });
       load();
@@ -116,8 +112,7 @@ export default function AccountsPayablePage() {
       const { error } = await supabase
         .from("accounts_payable")
         .delete()
-        .eq("id", id)
-        .eq("user_id", user.id);
+        .eq("id", id);
       if (error) throw error;
       setMessage({ type: "success", text: "Boleto excluído." });
       load();
