@@ -25,7 +25,6 @@ export default function ThemePage() {
       const { data } = await supabase
         .from("settings")
         .select("button_style")
-        .eq("user_id", user.id)
         .maybeSingle();
 
       if (data && data.button_style) {
@@ -45,11 +44,10 @@ export default function ThemePage() {
       updated_at: new Date().toISOString(),
     };
 
-    // 1º) Tenta ATUALIZAR a linha que já existe deste usuário
+    // 1º) Tenta ATUALIZAR a linha que já existe
     const { data: updated, error: updateError } = await supabase
       .from("settings")
       .update(payload)
-      .eq("user_id", user.id)
       .select();
 
     if (updateError) {
@@ -83,7 +81,7 @@ export default function ThemePage() {
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Meu Tema</h1>
       <p className="text-sm text-muted-foreground">
-        Escolha o visual do sistema para a sua conta. Isso não afeta os outros usuários.
+        Escolha o visual do sistema. Isso vale para todos os usuários.
       </p>
 
       <Card>
