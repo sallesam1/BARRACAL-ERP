@@ -5,21 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
-
 const PAYMENT_METHODS = ["Pix", "Cartão de Crédito", "Cartão de Débito", "Boleto", "Cheque", "Anotado"];
 const PAGE_SIZE = 30;
-
 const fmtData = (d: string) => (d ? new Date(d + "T12:00:00").toLocaleDateString("pt-BR") : "—");
 const fmtMoeda = (v: number) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fmtQtd = (v: number) => Number(v || 0).toLocaleString("pt-BR", { maximumFractionDigits: 3 });
-
 function statusParcela(p: any) {
   if (p.status === "paid") return { label: "Recebido", cor: "text-green-600" };
   const hoje = new Date().toISOString().slice(0, 10);
   if (p.due_date < hoje) return { label: "Vencido", cor: "text-red-600 font-semibold" };
   return { label: "Em aberto", cor: "text-amber-600" };
 }
-
 function splitEqual(total: number, count: number): number[] {
   if (count <= 0 || total <= 0) return Array(Math.max(1, count)).fill(0);
   const base = Math.floor((total / count) * 100) / 100;
@@ -33,7 +29,6 @@ function splitEqual(total: number, count: number): number[] {
   }
   return values;
 }
-
 export default function SalesPage() {
   const supabase = createClient();
   const [customers, setCustomers] = useState<any[]>([]);
@@ -61,22 +56,20 @@ export default function SalesPage() {
   const [editParcelaId, setEditParcelaId] = useState<string | null>(null);
   const [saleForm, setSaleForm] = useState<any>({});
   const [parcelaForm, setParcelaForm] = useState<any>({});
-
   const qty = parseFloat(String(quantity).replace(",", ".")) || 0;
   const price = parseFloat(String(unitPrice).replace(",", ".")) || 0;
   const total = qty * price;
-
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
     const { data: custs } = await supabase
-      .from("customers").select("id, name").eq("user_id", user.id).order("name");
+      .from("customers").select("id, name").order("name");
     if (custs) setCustomers(custs);
     const { data: prods } = await supabase
-      .from("products").select("id, name").eq("user_id", user.id).order("name");
+      .from("products").select("id, name").order("name");
     if (prods) setProducts(prods);
     const { data: vendas } = await supabase
-      .from("sales").select("*").eq("user_id", user.id)
+      .from("sales").select("*")
       .order("sale_date", { ascending: true });
     if (vendas && vendas.length) {
       const { data: receb } = await supabase
@@ -96,28 +89,22 @@ export default function SalesPage() {
     }
     setLoading(false);
   }
-
   useEffect(() => { load(); }, []);
-
   const totalPages = Math.max(1, Math.ceil(sales.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageSales = sales.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
   function handleInstallmentsChange(n: number) {
     const count = Math.max(1, Math.min(6, n || 1));
     setInstallments(count);
     setInstallmentValues(splitEqual(total, count));
   }
-
   function updateInstallmentValue(index: number, value: number) {
     const copy = [...installmentValues];
     copy[index] = value;
     setInstallmentValues(copy);
   }
-
   const sumInstallments = installmentValues.reduce((a, b) => a + (Number(b) || 0), 0);
   const diff = Math.round((sumInstallments - total) * 100) / 100;
-
   async function handleSave() {
     if (!productId) return setMessage({ type: "error", text: "Selecione um produto." });
     let customerName = "";
@@ -131,17 +118,14 @@ export default function SalesPage() {
     if (qty <= 0) return setMessage({ type: "error", text: "Informe a quantidade vendida." });
     if (price <= 0) return setMessage({ type: "error", text: "Informe o preço unitário." });
     if (diff !== 0) return setMessage({ type: "error", text: `A soma das parcelas (${sumInstallments.toFixed(2)}) não bate com o total (${total.toFixed(2)}). Ajuste os valores.` });
-
     setSaving(true);
     setMessage(null);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setMessage({ type: "error", text: "Usuário não autenticado." }); setSaving(false); return; }
-
     // CORREÇÃO: busca o estoque do usuário, sem falhar quando não existe registro
     const { data: inv } = await supabase
       .from("inventory")
       .select("id, quantity")
-      .eq("user_id", user.id)
       .eq("product_id", productId)
       .maybeSingle();
     const available = Number(inv?.quantity) || 0;
@@ -150,7 +134,6 @@ export default function SalesPage() {
       setSaving(false);
       return;
     }
-
     const { data: sale, error: sError } = await supabase
       .from("sales")
       .insert({
@@ -169,14 +152,12 @@ export default function SalesPage() {
       setSaving(false);
       return;
     }
-
     await supabase.from("sale_items").insert({
       sale_id: sale.id,
       product_id: productId,
       quantity: qty,
       unit_price: price,
     });
-
     // CORREÇÃO: atualiza o estoque pelo id (ou cria se não existir)
     if (inv?.id) {
       await supabase
@@ -191,7 +172,6 @@ export default function SalesPage() {
         min_quantity: 5,
       });
     }
-
     const baseDate = new Date(saleDate + "T12:00:00");
     for (let i = 1; i <= installments; i++) {
       const dueDate = new Date(baseDate);
@@ -206,7 +186,6 @@ export default function SalesPage() {
         total_installments: installments,
       });
     }
-
     setMessage({ type: "success", text: "Venda registrada! Recebimentos gerados e estoque atualizado." });
     setCustomerId(""); setCustomCustomer(""); setProductId(""); setQuantity(""); setUnitPrice("");
     setPaymentMethod("Pix"); setInstallments(1); setInstallmentValues([0]); setNotes("");
@@ -214,7 +193,6 @@ export default function SalesPage() {
     setSaving(false);
     load();
   }
-
   function abrirEdicaoVenda(v: any) {
     setEditSaleId(v.id);
     setSaleForm({
@@ -225,7 +203,6 @@ export default function SalesPage() {
       installments: String(v.installments || 1),
     });
   }
-
   async function salvarVenda() {
     if (!editSaleId) return;
     const { error } = await supabase
@@ -243,7 +220,6 @@ export default function SalesPage() {
     setEditSaleId(null);
     load();
   }
-
   async function excluirVenda(id: string) {
     if (!confirm("Excluir esta venda e todos os recebimentos dela?")) return;
     const { error } = await supabase.from("sales").delete().eq("id", id);
@@ -251,12 +227,10 @@ export default function SalesPage() {
     setMessage({ type: "success", text: "Venda excluída" });
     load();
   }
-
   function abrirEdicaoParcela(p: any) {
     setEditParcelaId(p.id);
     setParcelaForm({ due_date: p.due_date, amount: String(p.amount).replace(".", ","), status: p.status });
   }
-
   async function salvarParcela() {
     if (!editParcelaId) return;
     const { error } = await supabase
@@ -272,9 +246,7 @@ export default function SalesPage() {
     setEditParcelaId(null);
     load();
   }
-
   if (loading) return <p className="p-6">Carregando...</p>;
-
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -467,7 +439,6 @@ export default function SalesPage() {
     </div>
   );
 }
-
 function FragmentRow(props: any) {
   const { v, expandedId, setExpandedId, editSaleId, saleForm, setSaleForm, abrirEdicaoVenda,
     salvarVenda, setEditSaleId, excluirVenda, editParcelaId, parcelaForm, setParcelaForm,
