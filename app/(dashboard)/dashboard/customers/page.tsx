@@ -11,7 +11,8 @@ const ESTADOS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG
 
 const vazio = {
   name: "", cnpj: "", contact_name: "", phone: "",
-  email: "", address: "", city: "", uf: "", notes: "",
+  email: "", address: "", neighborhood: "", complement: "",
+  city: "", uf: "", notes: "",
 };
 
 // Máscara CNPJ/CPF: 000.000.000-00 (CPF) ou 00.000.000/0000-00 (CNPJ)
@@ -67,6 +68,7 @@ export default function CustomersPage() {
     setForm({
       name: c.name || "", cnpj: c.cnpj || "", contact_name: c.contact_name || "",
       phone: c.phone || "", email: c.email || "", address: c.address || "",
+      neighborhood: c.neighborhood || "", complement: c.complement || "",
       city: c.city || "", uf: c.uf || "", notes: c.notes || "",
     });
     setShowForm(true);
@@ -166,7 +168,15 @@ export default function CustomersPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Endereço</label>
-                <Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Rua, número, bairro" />
+                <Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Rua, número" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Bairro</label>
+                <Input value={form.neighborhood} onChange={(e) => set("neighborhood", e.target.value)} placeholder="Ex: Centro" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Complemento</label>
+                <Input value={form.complement} onChange={(e) => set("complement", e.target.value)} placeholder="Ex: Galpão 2, sala 101" />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Cidade</label>
