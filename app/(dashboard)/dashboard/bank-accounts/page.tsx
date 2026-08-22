@@ -5,14 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, Plus, Pencil, X, Check } from "lucide-react";
-
 // Retorna a data de HOJE no fuso do usuário (não em UTC)
 function todayLocal() {
   const now = new Date();
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10);
 }
-
 type Bank = { code: string; name: string };
 type Account = {
   id: string;
@@ -31,14 +29,12 @@ type Transaction = {
   amount: number;
   transaction_date: string;
 };
-
 export default function BankAccountsPage() {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
   // Form conta
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [accountName, setAccountName] = useState("");
@@ -47,7 +43,6 @@ export default function BankAccountsPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [initialBalance, setInitialBalance] = useState("0");
   const [isMaster, setIsMaster] = useState(false);
-
   // Form transação
   const [editingTxId, setEditingTxId] = useState<string | null>(null);
   const [selectedAccount, setSelectedAccount] = useState("");
@@ -55,9 +50,7 @@ export default function BankAccountsPage() {
   const [txDesc, setTxDesc] = useState("");
   const [txAmount, setTxAmount] = useState("");
   const [txDate, setTxDate] = useState(todayLocal());
-
   const supabase = createClient();
-
   async function loadData() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -68,8 +61,8 @@ export default function BankAccountsPage() {
       }
       const [bankRes, accRes, txRes] = await Promise.all([
         supabase.from("banks").select("*").order("name"),
-        supabase.from("bank_accounts").select("*").eq("user_id", user.id).order("account_name"),
-        supabase.from("bank_transactions").select("*").eq("user_id", user.id).order("transaction_date", { ascending: false }),
+        supabase.from("bank_accounts").select("*").order("account_name"),
+        supabase.from("bank_transactions").select("*").order("transaction_date", { ascending: false }),
       ]);
       if (bankRes.data) setBanks(bankRes.data);
       if (accRes.data) setAccounts(accRes.data);
@@ -79,12 +72,10 @@ export default function BankAccountsPage() {
     }
     setLoading(false);
   }
-
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   function getBalance(acc: Account): number {
     let bal = acc.initial_balance || 0;
     transactions
@@ -94,7 +85,6 @@ export default function BankAccountsPage() {
       });
     return bal;
   }
-
   function resetAccountForm() {
     setEditingAccountId(null);
     setAccountName("");
@@ -105,7 +95,6 @@ export default function BankAccountsPage() {
     setIsMaster(false);
     setMessage(null);
   }
-
   function startEditAccount(acc: Account) {
     setEditingAccountId(acc.id);
     setAccountName(acc.account_name || "");
@@ -117,7 +106,6 @@ export default function BankAccountsPage() {
     setMessage(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
   async function handleSaveAccount() {
     if (!accountName.trim()) {
       setMessage({ type: "error", text: "Informe o nome da conta." });
@@ -139,7 +127,7 @@ export default function BankAccountsPage() {
       };
       let error: any = null;
       if (editingAccountId) {
-        const res = await supabase.from("bank_accounts").update(payload).eq("id", editingAccountId).eq("user_id", user.id);
+        const res = await supabase.from("bank_accounts").update(payload).eq("id", editingAccountId);
         error = res.error;
       } else {
         const res = await supabase.from("bank_accounts").insert({ user_id: user.id, ...payload });
@@ -155,7 +143,6 @@ export default function BankAccountsPage() {
       setMessage({ type: "error", text: "Erro ao salvar conta: " + (e?.message || e) });
     }
   }
-
   async function handleDeleteAccount(id: string) {
     if (!confirm("Excluir esta conta? Os lançamentos dela também serão removidos. Prefira EDITAR em vez de excluir.")) return;
     try {
@@ -164,8 +151,8 @@ export default function BankAccountsPage() {
         setMessage({ type: "error", text: "Usuário não autenticado." });
         return;
       }
-      await supabase.from("bank_transactions").delete().eq("account_id", id).eq("user_id", user.id);
-      const { error } = await supabase.from("bank_accounts").delete().eq("id", id).eq("user_id", user.id);
+      await supabase.from("bank_transactions").delete().eq("account_id", id);
+      const { error } = await supabase.from("bank_accounts").delete().eq("id", id);
       if (error) throw error;
       setMessage({ type: "success", text: "Conta excluída." });
       loadData();
@@ -173,7 +160,6 @@ export default function BankAccountsPage() {
       setMessage({ type: "error", text: "Erro ao excluir: " + (e?.message || e) });
     }
   }
-
   function resetTxForm() {
     setEditingTxId(null);
     setSelectedAccount("");
@@ -183,7 +169,6 @@ export default function BankAccountsPage() {
     setTxDate(todayLocal());
     setMessage(null);
   }
-
   function startEditTransaction(t: Transaction) {
     setEditingTxId(t.id);
     setSelectedAccount(t.account_id || "");
@@ -194,7 +179,6 @@ export default function BankAccountsPage() {
     setMessage(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
   async function handleSaveTransaction() {
     const val = parseFloat(txAmount) || 0;
     if (!selectedAccount || val <= 0 || !txDesc.trim()) {
@@ -216,7 +200,7 @@ export default function BankAccountsPage() {
       };
       let error: any = null;
       if (editingTxId) {
-        const res = await supabase.from("bank_transactions").update(payload).eq("id", editingTxId).eq("user_id", user.id);
+        const res = await supabase.from("bank_transactions").update(payload).eq("id", editingTxId);
         error = res.error;
       } else {
         const res = await supabase.from("bank_transactions").insert({ user_id: user.id, ...payload });
@@ -232,7 +216,6 @@ export default function BankAccountsPage() {
       setMessage({ type: "error", text: "Erro ao lançar: " + (e?.message || e) });
     }
   }
-
   async function handleDeleteTransaction(id: string) {
     if (!confirm("Excluir este lançamento? Prefira EDITAR em vez de excluir.")) return;
     try {
@@ -241,26 +224,22 @@ export default function BankAccountsPage() {
         setMessage({ type: "error", text: "Usuário não autenticado." });
         return;
       }
-      const { error } = await supabase.from("bank_transactions").delete().eq("id", id).eq("user_id", user.id);
+      const { error } = await supabase.from("bank_transactions").delete().eq("id", id);
       if (error) setMessage({ type: "error", text: "Erro ao excluir: " + error.message });
       else { setMessage({ type: "success", text: "Lançamento excluído." }); loadData(); }
     } catch (e: any) {
       setMessage({ type: "error", text: "Erro ao excluir: " + (e?.message || e) });
     }
   }
-
   if (loading) return <p className="p-6">Carregando...</p>;
-
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Contas Correntes</h1>
-
       {message && (
         <div className={"p-3 rounded-md border text-sm " + (message.type === "success" ? "bg-green-50 border-green-200 text-green-700" : "bg-red-50 border-red-200 text-red-700")}>
           {message.text}
         </div>
       )}
-
       {/* Nova conta / Editar conta */}
       <Card>
         <CardHeader><CardTitle>{editingAccountId ? "Editar Conta" : "Nova Conta"}</CardTitle></CardHeader>
@@ -312,7 +291,6 @@ export default function BankAccountsPage() {
           </div>
         </CardContent>
       </Card>
-
       {/* Lista de contas com saldo */}
       <Card>
         <CardHeader><CardTitle>Minhas Contas</CardTitle></CardHeader>
@@ -354,7 +332,6 @@ export default function BankAccountsPage() {
           )}
         </CardContent>
       </Card>
-
       {/* Lançamento */}
       <Card>
         <CardHeader><CardTitle>{editingTxId ? "Editar Lançamento" : "Lançar Entrada / Saída"}</CardTitle></CardHeader>
@@ -403,7 +380,6 @@ export default function BankAccountsPage() {
           </div>
         </CardContent>
       </Card>
-
       {/* Últimos lançamentos */}
       <Card>
         <CardHeader><CardTitle>Últimos Lançamentos</CardTitle></CardHeader>
