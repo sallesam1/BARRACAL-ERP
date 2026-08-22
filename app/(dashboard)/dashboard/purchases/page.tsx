@@ -36,13 +36,13 @@ function WeightInput({
       <input
         type="text"
         inputMode="decimal"
-        className="w-full rounded-md border border-gray-300 bg-white p-2 text-sm text-gray-900"
+        className="w-full rounded-md border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100"
         value={value}
         placeholder={unit === "kg" ? "Ex: 47.470" : unit === "toneladas" ? "Ex: 47,47" : "Ex: 120"}
         onChange={(e) => onChange(formatNumber(e.target.value))}
       />
       <select
-        className="rounded-md border border-gray-300 bg-white p-2 text-sm text-gray-900"
+        className="rounded-md border border-gray-300 bg-white p-2 text-sm text-gray-900 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100"
         value={unit}
         onChange={(e) => onUnitChange(e.target.value as WeightUnit)}
       >
@@ -388,8 +388,8 @@ export default function PurchasesPage() {
         <div className={
           "p-3 rounded-md border text-sm " +
           (message.type === "success"
-            ? "bg-green-50 border-green-200 text-green-700"
-            : "bg-red-50 border-red-200 text-red-700")
+            ? "bg-green-50 border-green-200 text-green-700 dark:bg-green-900/30 dark:border-green-800 dark:text-green-300"
+            : "bg-red-50 border-red-200 text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300")
         }>
           {message.text}
         </div>
@@ -400,16 +400,16 @@ export default function PurchasesPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {editingId && (
-            <p className="text-xs text-gray-500">Editando compra existente — ao salvar, o estoque e as parcelas são recalculados automaticamente.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Editando compra existente — ao salvar, o estoque e as parcelas são recalculados automaticamente.</p>
           )}
-          <div className="flex items-center gap-2 p-3 rounded-md bg-gray-50 border border-gray-200">
+          <div className="flex items-center gap-2 p-3 rounded-md bg-gray-50 border border-gray-200 dark:bg-slate-800/50 dark:border-slate-700">
             <input
               type="checkbox"
               checked={isInitialStock}
               onChange={(e) => setIsInitialStock(e.target.checked)}
               className="h-4 w-4"
             />
-            <label className="text-sm text-gray-700">
+            <label className="text-sm text-gray-700 dark:text-gray-300">
               Estoque Inicial — mercadoria que você JÁ TEM (sem valor, não gera boleto)
             </label>
           </div>
@@ -431,7 +431,7 @@ export default function PurchasesPage() {
             <div>
               <label className="block text-sm font-medium mb-1">Fornecedor</label>
               <select
-                className="w-full p-2 border rounded-md bg-white text-gray-900"
+                className="w-full p-2 border rounded-md bg-white text-gray-900 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100"
                 value={supplierId}
                 onChange={(e) => setSupplierId(e.target.value)}
               >
@@ -446,7 +446,7 @@ export default function PurchasesPage() {
             <div>
               <label className="block text-sm font-medium mb-1">Produto</label>
               <select
-                className="w-full p-2 border rounded-md bg-white text-gray-900"
+                className="w-full p-2 border rounded-md bg-white text-gray-900 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100"
                 value={productId}
                 onChange={(e) => setProductId(e.target.value)}
               >
@@ -475,7 +475,7 @@ export default function PurchasesPage() {
             <div>
               <label className="block text-sm font-medium mb-1">Modalidade de Pagamento</label>
               <select
-                className="w-full p-2 border rounded-md bg-white text-gray-900"
+                className="w-full p-2 border rounded-md bg-white text-gray-900 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100"
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
               >
@@ -491,7 +491,7 @@ export default function PurchasesPage() {
             <div>
               <label className="block text-sm font-medium mb-1">Parcelas (1 a 6x)</label>
               <select
-                className="w-full p-2 border rounded-md bg-white text-gray-900"
+                className="w-full p-2 border rounded-md bg-white text-gray-900 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100"
                 value={installments}
                 onChange={(e) => setInstallments(Number(e.target.value))}
               >
@@ -513,8 +513,8 @@ export default function PurchasesPage() {
             <label className="block text-sm font-medium mb-1">Observações</label>
             <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Nº da nota fiscal, condições, prazo combinado..." />
           </div>
-          <div className="p-3 rounded-md bg-gray-50 border border-gray-200 flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Total da compra</span>
+          <div className="p-3 rounded-md bg-gray-50 border border-gray-200 dark:bg-slate-800/50 dark:border-slate-700 flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total da compra</span>
             <span className="text-lg font-bold">R$ {totalExibido.toFixed(2)}</span>
           </div>
           <div className="flex gap-2">
@@ -536,12 +536,12 @@ export default function PurchasesPage() {
         </CardHeader>
         <CardContent>
           {purchases.length === 0 ? (
-            <p className="text-sm text-gray-500">Nenhuma compra registrada ainda.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Nenhuma compra registrada ainda.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b text-left text-gray-500">
+                  <tr className="border-b text-left text-gray-500 dark:text-gray-400">
                     <th className="py-2 pr-4">Fornecedor</th>
                     <th className="py-2 pr-4">Data</th>
                     <th className="py-2 pr-4">Pagamento</th>
@@ -560,7 +560,7 @@ export default function PurchasesPage() {
                       <td className="py-2 pr-4 font-medium">R$ {Number(p.total).toFixed(2)}</td>
                       <td className="py-2">
                         <div className="flex items-center gap-2">
-                          <button onClick={() => startEdit(p)} className="text-slate-600 hover:text-slate-900" title="Editar">
+                          <button onClick={() => startEdit(p)} className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white" title="Editar">
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:text-red-700" title="Excluir">
