@@ -5,21 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Pencil, Trash2, X } from "lucide-react";
-
 // Retorna a data de HOJE no fuso do usuário (não em UTC)
 function todayLocal() {
   const now = new Date();
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10);
 }
-
 // Converte aaaa-mm-dd para dd/mm/aaaa
 function formatDateBR(iso: string): string {
   if (!iso) return "—";
   const [y, m, d] = iso.split("-");
   return `${d}/${m}/${y}`;
 }
-
 // Nomes bonitos das formas de pagamento
 const PAYMENT_LABELS: Record<string, string> = {
   pix: "Pix",
@@ -28,7 +25,6 @@ const PAYMENT_LABELS: Record<string, string> = {
   credito: "Cartão de Crédito",
   debito: "Cartão de Débito",
 };
-
 export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,9 +39,7 @@ export default function ExpensesPage() {
   const [category, setCategory] = useState("");
   const [notes, setNotes] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
-
   const supabase = createClient();
-
   useEffect(() => {
     async function load() {
       try {
@@ -58,12 +52,10 @@ export default function ExpensesPage() {
           supabase
             .from("expenses")
             .select("*")
-            .eq("user_id", user.id)
             .order("expense_date", { ascending: false }),
           supabase
             .from("expense_categories")
             .select("id, name")
-            .eq("user_id", user.id)
             .order("name"),
         ]);
         if (expRes.data) setExpenses(expRes.data);
@@ -79,7 +71,6 @@ export default function ExpensesPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   function resetForm() {
     setDescription("");
     setAmount("");
@@ -88,7 +79,6 @@ export default function ExpensesPage() {
     setEditingId(null);
     setMessage(null);
   }
-
   function startEdit(exp: any) {
     setEditingId(exp.id);
     setDescription(exp.description || "");
@@ -101,7 +91,6 @@ export default function ExpensesPage() {
     setMessage(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
   async function handleSave() {
     setSaving(true);
     setMessage(null);
@@ -125,7 +114,6 @@ export default function ExpensesPage() {
       }
       const parcelas = installments > 0 ? installments : 1;
       let expenseId: string;
-
       if (editingId) {
         const { error: updErr } = await supabase
           .from("expenses")
@@ -160,7 +148,6 @@ export default function ExpensesPage() {
         if (expErr) throw expErr;
         expenseId = expense.id;
       }
-
       const valorParcela = value / parcelas;
       const payRows = Array.from({ length: parcelas }, (_, i) => {
         const due = new Date(expenseDate);
@@ -178,7 +165,6 @@ export default function ExpensesPage() {
       });
       const { error: payErr } = await supabase.from("accounts_payable").insert(payRows);
       if (payErr) throw payErr;
-
       setMessage({
         type: "success",
         text: editingId
@@ -189,7 +175,6 @@ export default function ExpensesPage() {
       const { data: res } = await supabase
         .from("expenses")
         .select("*")
-        .eq("user_id", user.id)
         .order("expense_date", { ascending: false });
       if (res) setExpenses(res);
     } catch (e: any) {
@@ -198,7 +183,6 @@ export default function ExpensesPage() {
     }
     setSaving(false);
   }
-
   async function handleDelete(id: string) {
     if (!confirm("Excluir esta despesa? As parcelas dela no Contas a Pagar também serão removidas. Prefira EDITAR em vez de excluir.")) return;
     try {
@@ -210,20 +194,16 @@ export default function ExpensesPage() {
       const { data: res } = await supabase
         .from("expenses")
         .select("*")
-        .eq("user_id", user.id)
         .order("expense_date", { ascending: false });
       if (res) setExpenses(res);
     } catch (e: any) {
       setMessage({ type: "error", text: "Erro ao excluir: " + (e?.message || e) });
     }
   }
-
   if (loading) return <p className="p-6">Carregando...</p>;
-
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Despesas</h1>
-
       {message && (
         <div className={
           "p-3 rounded-md border text-sm " +
@@ -234,7 +214,6 @@ export default function ExpensesPage() {
           {message.text}
         </div>
       )}
-
       <Card>
         <CardHeader>
           <CardTitle>{editingId ? "Editar Despesa" : "Nova Despesa"}</CardTitle>
@@ -306,7 +285,6 @@ export default function ExpensesPage() {
           </div>
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Histórico de Despesas</CardTitle>
