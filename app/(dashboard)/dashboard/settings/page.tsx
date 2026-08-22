@@ -39,7 +39,6 @@ export default function SettingsPage() {
       const { data } = await supabase
         .from("settings")
         .select("*")
-        .eq("user_id", user.id)
         .maybeSingle();
 
       if (data) {
@@ -71,7 +70,6 @@ export default function SettingsPage() {
     const { data: updated, error: updateError } = await supabase
       .from("settings")
       .update(payload)
-      .eq("user_id", user.id)
       .select();
 
     if (updateError) {
