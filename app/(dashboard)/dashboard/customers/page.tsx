@@ -14,6 +14,22 @@ const vazio = {
   email: "", address: "", city: "", uf: "", notes: "",
 };
 
+// Máscara CNPJ/CPF: 000.000.000-00 (CPF) ou 00.000.000/0000-00 (CNPJ)
+function maskCnpjCpf(value: string): string {
+  const d = value.replace(/\D/g, "").slice(0, 14);
+  if (d.length <= 11) {
+    return d
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+  }
+  return d
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
 export default function CustomersPage() {
   const supabase = createClient();
   const [customers, setCustomers] = useState<any[]>([]);
@@ -129,7 +145,12 @@ export default function CustomersPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">CNPJ / CPF</label>
-                <Input value={form.cnpj_cpf} onChange={(e) => set("cnpj_cpf", e.target.value)} placeholder="00.000.000/0000-00" />
+                <Input
+                  value={form.cnpj_cpf}
+                  onChange={(e) => set("cnpj_cpf", maskCnpjCpf(e.target.value))}
+                  placeholder="00.000.000/0000-00"
+                  inputMode="numeric"
+                />
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Nome de Contato</label>
