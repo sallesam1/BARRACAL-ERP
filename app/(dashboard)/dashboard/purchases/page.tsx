@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Pencil, Trash2, X } from "lucide-react";
-
 // ===== Componente de Peso (embutido) =====
 type WeightUnit = "unidade" | "kg" | "toneladas";
 function formatNumber(value: string): string {
@@ -54,7 +53,6 @@ function WeightInput({
     </div>
   );
 }
-
 // ===== Utilitários de data (formato brasileiro) =====
 function todayBR(): string {
   const now = new Date();
@@ -78,7 +76,6 @@ function addDays(iso: string, days: number): string {
   dt.setDate(dt.getDate() + days);
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
 }
-
 const PAYMENT_LABELS: Record<string, string> = {
   pix: "Pix",
   boleto: "Boleto",
@@ -86,7 +83,6 @@ const PAYMENT_LABELS: Record<string, string> = {
   dinheiro: "Dinheiro",
   anotado: "Anotado",
 };
-
 export default function PurchasesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -95,7 +91,6 @@ export default function PurchasesPage() {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-
   // Formulário
   const [supplierId, setSupplierId] = useState("");
   const [productId, setProductId] = useState("");
@@ -109,14 +104,11 @@ export default function PurchasesPage() {
   const [installmentInterval, setInstallmentInterval] = useState(30);
   const [isInitialStock, setIsInitialStock] = useState(false);
   const [notes, setNotes] = useState("");
-
   const supabase = createClient();
-
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   async function load() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -128,7 +120,7 @@ export default function PurchasesPage() {
       const [prodRes, supRes, purRes] = await Promise.all([
         supabase.from("products").select("id, name").order("name"),
         supabase.from("suppliers").select("*"),
-        supabase.from("purchases").select("*").eq("user_id", user.id).order("purchase_date", { ascending: false }),
+        supabase.from("purchases").select("*").order("purchase_date", { ascending: false }),
       ]);
       if (prodRes.data) setProducts(prodRes.data);
       if (supRes.data) {
@@ -146,7 +138,6 @@ export default function PurchasesPage() {
     }
     setLoading(false);
   }
-
   function resetForm() {
     setSupplierId("");
     setProductId("");
@@ -160,7 +151,6 @@ export default function PurchasesPage() {
     setEditingId(null);
     setMessage(null);
   }
-
   async function startEdit(p: any) {
     setEditingId(p.id);
     // Busca o item da compra (produto, peso em kg, custo unitário)
@@ -185,7 +175,6 @@ export default function PurchasesPage() {
     setMessage(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
   async function handleSave() {
     setSaving(true);
     setMessage(null);
@@ -236,7 +225,6 @@ export default function PurchasesPage() {
           const { data: oldInv } = await supabase
             .from("inventory")
             .select("id, quantity")
-            .eq("user_id", user.id)
             .eq("product_id", oldItem.product_id)
             .maybeSingle();
           if (oldInv) {
@@ -259,8 +247,7 @@ export default function PurchasesPage() {
             first_due_days: firstDueDays,
             installment_interval: installmentInterval,
           })
-          .eq("id", editingId)
-          .eq("user_id", user.id);
+          .eq("id", editingId);
         if (updErr) throw updErr;
         // 3. Remove itens e parcelas antigas (serão recriados abaixo)
         await supabase.from("purchase_items").delete().eq("purchase_id", editingId);
@@ -298,7 +285,6 @@ export default function PurchasesPage() {
       const { data: inv } = await supabase
         .from("inventory")
         .select("id, quantity")
-        .eq("user_id", user.id)
         .eq("product_id", productId)
         .maybeSingle();
       if (inv) {
@@ -349,7 +335,6 @@ export default function PurchasesPage() {
       const { data: purRes } = await supabase
         .from("purchases")
         .select("*")
-        .eq("user_id", user.id)
         .order("purchase_date", { ascending: false });
       if (purRes) setPurchases(purRes);
     } catch (e: any) {
@@ -358,7 +343,6 @@ export default function PurchasesPage() {
     }
     setSaving(false);
   }
-
   async function handleDelete(id: string) {
     if (!confirm("Excluir esta compra? O estoque e as parcelas dela também serão ajustados. Prefira EDITAR em vez de excluir.")) return;
     try {
@@ -377,7 +361,6 @@ export default function PurchasesPage() {
         const { data: inv } = await supabase
           .from("inventory")
           .select("id, quantity")
-          .eq("user_id", user.id)
           .eq("product_id", item.product_id)
           .maybeSingle();
         if (inv) {
@@ -389,21 +372,18 @@ export default function PurchasesPage() {
       }
       await supabase.from("accounts_payable").delete().eq("purchase_id", id);
       await supabase.from("purchase_items").delete().eq("purchase_id", id);
-      await supabase.from("purchases").delete().eq("id", id).eq("user_id", user.id);
+      await supabase.from("purchases").delete().eq("id", id);
       setMessage({ type: "success", text: "Compra excluída e estoque ajustado." });
       load();
     } catch (e: any) {
       setMessage({ type: "error", text: "Erro ao excluir: " + (e?.message || e) });
     }
   }
-
   if (loading) return <p className="p-6">Carregando...</p>;
   const totalExibido = parseNumber(weight) * parseNumber(unitCost);
-
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Compras</h1>
-
       {message && (
         <div className={
           "p-3 rounded-md border text-sm " +
@@ -414,7 +394,6 @@ export default function PurchasesPage() {
           {message.text}
         </div>
       )}
-
       <Card>
         <CardHeader>
           <CardTitle>{editingId ? "Editar Compra" : "Nova Compra"}</CardTitle>
@@ -551,7 +530,6 @@ export default function PurchasesPage() {
           </div>
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Compras Recentes</CardTitle>
