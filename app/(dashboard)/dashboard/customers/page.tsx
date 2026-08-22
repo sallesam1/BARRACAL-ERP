@@ -10,7 +10,7 @@ import { Plus, Pencil, Trash2, Users } from "lucide-react";
 const ESTADOS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 
 const vazio = {
-  name: "", cnpj_cpf: "", contact_name: "", phone: "",
+  name: "", cnpj: "", contact_name: "", phone: "",
   email: "", address: "", city: "", uf: "", notes: "",
 };
 
@@ -65,7 +65,7 @@ export default function CustomersPage() {
   function abrirEdicao(c: any) {
     setEditId(c.id);
     setForm({
-      name: c.name || "", cnpj_cpf: c.cnpj_cpf || "", contact_name: c.contact_name || "",
+      name: c.name || "", cnpj: c.cnpj || "", contact_name: c.contact_name || "",
       phone: c.phone || "", email: c.email || "", address: c.address || "",
       city: c.city || "", uf: c.uf || "", notes: c.notes || "",
     });
@@ -146,8 +146,8 @@ export default function CustomersPage() {
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">CNPJ / CPF</label>
                 <Input
-                  value={form.cnpj_cpf}
-                  onChange={(e) => set("cnpj_cpf", maskCnpjCpf(e.target.value))}
+                  value={form.cnpj}
+                  onChange={(e) => set("cnpj", maskCnpjCpf(e.target.value))}
                   placeholder="00.000.000/0000-00"
                   inputMode="numeric"
                 />
@@ -221,7 +221,7 @@ export default function CustomersPage() {
                   {customers.map((c) => (
                     <tr key={c.id} className="border-b">
                       <td className="py-2 pr-4 font-medium">{c.name || "—"}</td>
-                      <td className="py-2 pr-4">{c.cnpj_cpf || "—"}</td>
+                      <td className="py-2 pr-4">{c.cnpj || "—"}</td>
                       <td className="py-2 pr-4">{c.contact_name || "—"}</td>
                       <td className="py-2 pr-4">{c.phone || "—"}</td>
                       <td className="py-2 pr-4">{[c.city, c.uf].filter(Boolean).join("/") || "—"}</td>
