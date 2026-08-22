@@ -1,19 +1,15 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Pencil, Trash2, Building2 } from "lucide-react";
-
 const ESTADOS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
-
 const vazio = {
   name: "", cnpj: "", ie: "", contact_name: "", phone: "",
   email: "", address: "", city: "", uf: "", notes: "",
 };
-
 export default function SuppliersPage() {
   const supabase = createClient();
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -23,30 +19,24 @@ export default function SuppliersPage() {
   const [form, setForm] = useState<any>({ ...vazio });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
     const { data } = await supabase
       .from("suppliers")
       .select("*")
-      .eq("user_id", user.id)
       .order("name");
     setSuppliers(data || []);
     setLoading(false);
   }
-
   useEffect(() => { load(); }, []);
-
   const set = (campo: string, valor: any) => setForm((f: any) => ({ ...f, [campo]: valor }));
-
   function abrirNovo() {
     setEditId(null);
     setForm({ ...vazio });
     setShowForm(true);
     setMessage(null);
   }
-
   function abrirEdicao(s: any) {
     setEditId(s.id);
     setForm({
@@ -58,7 +48,6 @@ export default function SuppliersPage() {
     setShowForm(true);
     setMessage(null);
   }
-
   async function salvar() {
     if (!form.name.trim()) {
       setMessage({ type: "error", text: "Informe o nome / razão social." });
@@ -89,7 +78,6 @@ export default function SuppliersPage() {
     setSaving(false);
     load();
   }
-
   async function excluir(id: string, nome: string) {
     if (!confirm(`Excluir o fornecedor "${nome}"?`)) return;
     const { error } = await supabase.from("suppliers").delete().eq("id", id);
@@ -100,9 +88,7 @@ export default function SuppliersPage() {
     setMessage({ type: "success", text: "Fornecedor excluído." });
     load();
   }
-
   if (loading) return <p className="p-6">Carregando...</p>;
-
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -113,11 +99,9 @@ export default function SuppliersPage() {
           </Button>
         )}
       </div>
-
       {message && (
         <p className={`text-sm ${message.type === "success" ? "text-green-600" : "text-red-600"}`}>{message.text}</p>
       )}
-
       {showForm && (
         <Card>
           <CardHeader>
@@ -180,7 +164,6 @@ export default function SuppliersPage() {
           </CardContent>
         </Card>
       )}
-
       <Card>
         <CardHeader><CardTitle>Fornecedores Cadastrados</CardTitle></CardHeader>
         <CardContent>
