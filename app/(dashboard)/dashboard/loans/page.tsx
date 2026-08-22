@@ -5,14 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, Eye, Pencil, X, Check } from "lucide-react";
-
 // Retorna a data de HOJE no fuso do usuário (não em UTC)
 function todayLocal() {
   const now = new Date();
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10);
 }
-
 type LoanCategory = { id: string; name: string; default_interest_rate: number; default_amortization: string };
 type Loan = {
   id: string;
@@ -37,7 +35,6 @@ type Installment = {
   total: number;
   status: string;
 };
-
 const AMORT_LABELS: Record<string, string> = {
   price: "Tabela Price (parcelas fixas)",
   sac: "SAC (parcelas decrescentes)",
@@ -49,12 +46,10 @@ const GRACE_LABELS: Record<string, string> = {
   interest_only: "Carência pagando só juros",
   no_interest: "Carência sem juros",
 };
-
 // Converte taxa anual em mensal (juros compostos)
 function annualToMonthly(annual: number): number {
   return Math.pow(1 + annual / 100, 1 / 12) - 1;
 }
-
 // Gera a tabela de parcelas
 function buildSchedule(params: {
   amount: number;
@@ -131,14 +126,12 @@ function buildSchedule(params: {
   }
   return schedule;
 }
-
 export default function LoansPage() {
   const [categories, setCategories] = useState<LoanCategory[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-
   // Form
   const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
@@ -151,12 +144,9 @@ export default function LoansPage() {
   const [graceType, setGraceType] = useState("none");
   const [totalInstallments, setTotalInstallments] = useState("1");
   const [startDate, setStartDate] = useState(todayLocal());
-
   // Preview
   const [preview, setPreview] = useState<Installment[] | null>(null);
-
   const supabase = createClient();
-
   async function loadData() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -166,8 +156,8 @@ export default function LoansPage() {
         return;
       }
       const [catRes, loanRes] = await Promise.all([
-        supabase.from("loan_categories").select("*").eq("user_id", user.id).order("name"),
-        supabase.from("loans").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("loan_categories").select("*").order("name"),
+        supabase.from("loans").select("*").order("created_at", { ascending: false }),
       ]);
       if (catRes.data) setCategories(catRes.data);
       if (loanRes.data) setLoans(loanRes.data);
@@ -176,12 +166,10 @@ export default function LoansPage() {
     }
     setLoading(false);
   }
-
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   function resetForm() {
     setEditingId(null);
     setCategoryId("");
@@ -198,7 +186,6 @@ export default function LoansPage() {
     setPreview(null);
     setMessage(null);
   }
-
   function startEdit(loan: Loan) {
     setEditingId(loan.id);
     setCategoryId(loan.category_id || "");
@@ -216,7 +203,6 @@ export default function LoansPage() {
     setMessage(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
   function handlePreview() {
     const val = parseFloat(amount) || 0;
     const rate = parseFloat(interestRate) || 0;
@@ -233,7 +219,6 @@ export default function LoansPage() {
       startDate,
     }));
   }
-
   async function handleSave() {
     const val = parseFloat(amount) || 0;
     if (val <= 0 || !description.trim()) {
@@ -278,15 +263,14 @@ export default function LoansPage() {
             total_installments: parseInt(totalInstallments) || 1,
             start_date: startDate,
           })
-          .eq("id", editingId)
-          .eq("user_id", user.id);
+          .eq("id", editingId);
         if (updErr) {
           setMessage({ type: "error", text: "Erro ao salvar: " + updErr.message });
           return;
         }
         loanId = editingId;
         // Recalcula as parcelas: apaga as antigas e recria
-        await supabase.from("loan_installments").delete().eq("loan_id", editingId).eq("user_id", user.id);
+        await supabase.from("loan_installments").delete().eq("loan_id", editingId);
       } else {
         const { data: inserted, error } = await supabase.from("loans").insert(payload).select().single();
         if (error) {
@@ -334,7 +318,6 @@ export default function LoansPage() {
       setMessage({ type: "error", text: "Erro ao salvar: " + (e?.message || e) });
     }
   }
-
   async function handleDelete(id: string) {
     if (!confirm("Excluir este empréstimo? As parcelas dele também serão removidas. Prefira EDITAR em vez de excluir.")) return;
     try {
@@ -343,8 +326,8 @@ export default function LoansPage() {
         setMessage({ type: "error", text: "Usuário não autenticado." });
         return;
       }
-      await supabase.from("loan_installments").delete().eq("loan_id", id).eq("user_id", user.id);
-      const { error } = await supabase.from("loans").delete().eq("id", id).eq("user_id", user.id);
+      await supabase.from("loan_installments").delete().eq("loan_id", id);
+      const { error } = await supabase.from("loans").delete().eq("id", id);
       if (error) throw error;
       setMessage({ type: "success", text: "Empréstimo excluído." });
       loadData();
@@ -352,9 +335,7 @@ export default function LoansPage() {
       setMessage({ type: "error", text: "Erro ao excluir: " + (e?.message || e) });
     }
   }
-
   if (loading) return <p className="p-6">Carregando...</p>;
-
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Empréstimos</h1>
