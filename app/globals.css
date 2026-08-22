@@ -236,4 +236,18 @@
 /* ===== CORREÇÃO GLOBAL: nenhuma janela fica branca no tema escuro ===== */
 .bg-white {
   background-color: hsl(var(--card)) !important;
+}/* ===== CORREÇÃO GLOBAL: dropdowns no tema escuro ===== */
+.dark select,
+.dark option,
+.dark-premium select,
+.dark-premium option,
+.midnight select,
+.midnight option {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+.dark select option:hover,
+.dark-premium select option:hover,
+.midnight select option:hover {
+  background-color: #334155 !important;
 }
